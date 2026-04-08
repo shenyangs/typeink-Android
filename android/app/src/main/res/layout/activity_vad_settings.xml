@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/typeink_screen_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_typeink_result_card"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="智能判停"
+                android:textColor="@color/typeink_text"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="自动判断你是否已经停顿，并在合适的时机结束录音。"
+                android:textColor="@color/typeink_text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- 说明文字 -->
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="VAD (Voice Activity Detection) 可以自动检测你何时停止说话，并自动结束录音。"
+        android:textColor="@color/typeink_muted"
+        android:textSize="14sp" />
+
+        <!-- VAD 开关 -->
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_typeink_result_card"
+        android:orientation="horizontal"
+        android:padding="18dp">
+
+            <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="启用智能判停"
+            android:textColor="@color/typeink_text_primary_alias"
+            android:textSize="16sp" />
+
+            <Switch
+            android:id="@+id/vadSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- 超时时间设置 -->
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_typeink_result_card"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+            <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+                <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="停顿时间"
+                android:textColor="@color/typeink_text_primary_alias"
+                android:textSize="16sp" />
+
+                <TextView
+                android:id="@+id/timeoutValueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1.5秒"
+                android:textColor="@color/typeink_accent_end"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+            android:id="@+id/timeoutSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:max="27"
+            android:progress="12" />
+
+            <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+                <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.3秒"
+                android:textColor="@color/typeink_muted"
+                android:textSize="12sp" />
+
+                <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+                <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3秒"
+                android:textColor="@color/typeink_muted"
+                android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+            android:id="@+id/timeoutDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="停止说话后等待此时间自动结束录音"
+            android:textColor="@color/typeink_text_secondary"
+            android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 重置按钮 -->
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center">
+
+            <TextView
+            android:id="@+id/resetButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_typeink_secondary_pill"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:text="恢复默认设置"
+            android:textColor="@color/typeink_text_secondary"
+            android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

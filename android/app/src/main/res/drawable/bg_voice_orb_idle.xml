@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 外发光 -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#1AFFFFFF" />
+            <size android:width="76dp" android:height="76dp" />
+        </shape>
+    </item>
+    <!-- 主球体 - 玻璃质感 -->
+    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="70%"
+                android:centerX="0.4"
+                android:centerY="0.4"
+                android:startColor="#E6FFFFFF"
+                android:centerColor="#CCFFFFFF"
+                android:endColor="#99FFFFFF" />
+        </shape>
+    </item>
+    <!-- 高光 -->
+    <item android:left="16dp" android:top="16dp" android:right="40dp" android:bottom="40dp">
+        <shape android:shape="oval">
+            <solid android:color="#80FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

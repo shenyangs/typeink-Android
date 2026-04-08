@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/typeink_screen_background"
+    android:orientation="vertical">
+
+    <!-- 顶部工具栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_typeink_panel"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_clear"
+            app:tint="@color/typeink_text" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:text="AI 编辑面板"
+            android:textColor="@color/typeink_text"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_typeink_primary_pill"
+            android:paddingHorizontal="20dp"
+            android:text="发送"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- 编辑区域 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_typeink_editor"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:gravity="top|start"
+                android:hint="在这里编辑文本..."
+                android:lineSpacingMultiplier="1.3"
+                android:minHeight="200dp"
+                android:textColor="@color/typeink_text"
+                android:textColorHint="@color/typeink_muted"
+                android:textSize="16sp" />
+
+            <!-- 指令提示 -->
+            <TextView
+                android:id="@+id/instructionText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_typeink_status_badge"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="按住下方🎤说出修改指令"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- 编辑工具栏 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/cursorLeftButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="←"
+                android:textColor="@color/typeink_text"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/cursorRightButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="→"
+                android:textColor="@color/typeink_text"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/selectAllButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="全选"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/copyButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="复制"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/pasteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="粘贴"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/undoButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="清空"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/deleteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_typeink_key"
+                android:paddingHorizontal="16dp"
+                android:text="删除"
+                android:textColor="@color/typeink_text"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <!-- 底部语音指令按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_typeink_panel"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="按住🎤说出修改指令"
+            android:textColor="@color/typeink_muted"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text='例如：删除最后一句、在第二段加上'
+            android:textColor="@color/typeink_muted"
+            android:textSize="12sp" />
+
+        <ImageButton
+            android:id="@+id/voiceEditButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_typeink_mic_button"
+            android:padding="16dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_typeink_mic" />
+
+    </LinearLayout>
+
+</LinearLayout>

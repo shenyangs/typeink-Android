@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+        Typeless-inspired Design System
+        单色、低调、高对比度
+    -->
+    
+    <!-- 核心背景色 - 毛玻璃效果的深色基底 -->
+    <color name="typeink_background">#80212121</color>
+    <color name="typeink_surface">#CC1A1A1A</color>
+    <color name="typeink_surface_elevated">#E61E1E1E</color>
+    <color name="typeink_keyboard_background">#B3151515</color>
+    
+    <!-- 文字色 - 单色灰度系统 -->
+    <color name="typeink_text_primary">#FFFFFF</color>
+    <color name="typeink_text_secondary">#B3FFFFFF</color>
+    <color name="typeink_text_tertiary">#80FFFFFF</color>
+    <color name="typeink_text_hint">#66FFFFFF</color>
+    
+    <!-- 强调色 - 纯白或电光蓝 -->
+    <color name="typeink_accent">#FFFFFF</color>
+    <color name="typeink_accent_blue">#00D4FF</color>
+    <color name="typeink_accent_glow">#3300D4FF</color>
+    
+    <!-- 状态色 -->
+    <color name="typeink_recording">#FF4757</color>
+    <color name="typeink_recording_glow">#66FF4757</color>
+    <color name="typeink_success">#2ED573</color>
+    <color name="typeink_error">#FF4757</color>
+    
+    <!-- 边框和分割线 -->
+    <color name="typeink_border">#1AFFFFFF</color>
+    <color name="typeink_border_strong">#33FFFFFF</color>
+    <color name="typeink_divider">#0DFFFFFF</color>
+    
+    <!-- 按钮状态 -->
+    <color name="typeink_button_idle">#26FFFFFF</color>
+    <color name="typeink_button_pressed">#40FFFFFF</color>
+    <color name="typeink_button_surface">#33FFFFFF</color>
+    
+    <!-- 波形图 -->
+    <color name="typeink_wave_active">#FFFFFF</color>
+    <color name="typeink_wave_inactive">#40FFFFFF</color>
+    
+    <!-- 旧版兼容（保留但不再使用） -->
+    <color name="typeink_screen_background">#090C12</color>
+    <color name="typeink_text">#F7F9FC</color>
+    <color name="typeink_muted">#8793A6</color>
+    <color name="typeink_muted_soft">#647188</color>
+    <color name="typeink_accent_start">#7A7DFF</color>
+    <color name="typeink_accent_end">#36D3FF</color>
+    
+    <!-- 兼容旧drawable引用 -->
+    <color name="typeink_chip_track">#121925</color>
+    <color name="typeink_accent_soft">#161D2D</color>
+    <color name="typeink_key_surface_soft">#0F1620</color>
+    <color name="typeink_surface_soft">#0D121A</color>
+    <color name="typeink_border_soft">#1A2433</color>
+    <color name="typeink_mic_text_dark">#09111A</color>
+    <color name="typeink_primary">#7A7DFF</color>
+    <color name="typeink_warning">#FFB86B</color>
+    <color name="typeink_chip_active">#1B2640</color>
+    <color name="typeink_key_surface">#141C28</color>
+    <color name="typeink_card_background">#151D29</color>
+    <color name="typeink_border_subtle">#253042</color>
+    <color name="typeink_error_soft">#3A161D</color>
+    <color name="typeink_mic_start">#D2FF7A</color>
+    <color name="typeink_mic_end">#72F0C8</color>
+    <color name="typeink_mic_start_recording">#7A7DFF</color>
+    <color name="typeink_mic_end_recording">#36D3FF</color>
+    <color name="typeink_ripple_light">#40FFFFFF</color>
+    <color name="typeink_text_primary_alias">#F7F9FC</color>
+</resources>

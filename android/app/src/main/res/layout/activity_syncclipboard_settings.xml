@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/typeink_screen_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_typeink_result_card"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="剪贴板同步"
+            android:textColor="@color/typeink_text"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="SyncClipboard 让你在多个设备间同步剪贴板内容"
+        android:textColor="@color/typeink_text_secondary"
+        android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 启用开关 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_typeink_result_card"
+        android:orientation="horizontal"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="启用 SyncClipboard"
+            android:textColor="@color/typeink_text_primary_alias"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/enableSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- 服务器地址 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_typeink_result_card"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="服务器地址"
+            android:textColor="@color/typeink_text_primary_alias"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/serverUrlEdit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_typeink_input_field"
+            android:hint="http://192.168.1.100:5033"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/typeink_text"
+            android:textColorHint="@color/typeink_muted"
+            android:textSize="14sp" />
+
+    <!-- 用户名 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="用户名（可选）"
+            android:textColor="@color/typeink_text_primary_alias"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/usernameEdit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_typeink_input_field"
+            android:hint="用户名"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/typeink_text"
+            android:textColorHint="@color/typeink_muted"
+            android:textSize="14sp" />
+
+    <!-- 密码 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="密码（可选）"
+            android:textColor="@color/typeink_text_primary_alias"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/passwordEdit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_typeink_input_field"
+            android:hint="密码"
+            android:inputType="textPassword"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/typeink_text"
+            android:textColorHint="@color/typeink_muted"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 状态显示 -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:padding="14dp"
+        android:background="@drawable/bg_typeink_result_card"
+        android:text="状态: 未配置"
+        android:textColor="@color/typeink_text_secondary"
+        android:textSize="13sp" />
+
+    <!-- 按钮行 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/testButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_typeink_secondary_pill"
+            android:text="测试连接"
+            android:textAllCaps="false"
+            android:textColor="@color/typeink_text_secondary" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_typeink_primary_pill"
+            android:text="保存设置"
+            android:textAllCaps="false"
+            android:textColor="@color/typeink_text_primary" />
+    </LinearLayout>
+    </LinearLayout>
+</ScrollView>

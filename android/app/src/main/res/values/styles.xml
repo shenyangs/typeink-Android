@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 按键样式 -->
+    <style name="KeyButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:background">@drawable/bg_key_modern</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/typeink_text_secondary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 候选词按钮 -->
+    <style name="CandidateButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:background">@drawable/bg_key_modern</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/typeink_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <!-- 英文键盘按键样式 -->
+    <style name="KeyStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:background">@drawable/bg_key_modern</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/typeink_text_primary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 宽按键样式 (Shift, Backspace等) -->
+    <style name="KeyStyleWide">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1.5</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:background">@drawable/bg_key_modern</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/typeink_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 空格键样式 -->
+    <style name="KeyStyleSpace">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">4</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:background">@drawable/bg_key_modern</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/typeink_text_hint</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+</resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Typeink" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/typeink_accent_start</item>
+        <item name="colorPrimaryVariant">@color/typeink_accent_end</item>
+        <item name="colorOnPrimary">@color/typeink_text</item>
+        <item name="android:statusBarColor">@color/typeink_screen_background</item>
+        <item name="android:navigationBarColor">@color/typeink_screen_background</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        <item name="android:windowBackground">@color/typeink_screen_background</item>
+    </style>
+
+    <style name="Theme.Typeink.Ime" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/typeink_accent_start</item>
+        <item name="colorPrimaryVariant">@color/typeink_accent_end</item>
+        <item name="colorOnPrimary">@color/typeink_text</item>
+        <item name="android:windowBackground">@color/typeink_keyboard_background</item>
+    </style>
+
+    <!-- 沉浸创作模式 Theme - 全屏，无系统栏 -->
+    <style name="Theme.Typeink.Immersive" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/typeink_accent_blue</item>
+        <item name="colorPrimaryVariant">@color/typeink_accent_blue</item>
+        <item name="colorOnPrimary">@color/typeink_text</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        <item name="android:windowBackground">@color/typeink_screen_background</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+</resources>

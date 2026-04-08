@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    沉浸创作模式 - Focus Mode Layout
+    设计原则：
+    1. 大留白，呼吸感
+    2. 层级清晰：文字 > 波形 > 控制
+    3. 最小化干扰元素
+    4. 自然的视觉层次
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/typeink_screen_background">
+
+    <!-- 背景渐变层 - 增加深度感 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_immersive_gradient" />
+
+    <!-- 内容容器 - 包含所有可交互元素 -->
+    <FrameLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="32dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="120dp">
+
+        <!-- 顶部状态栏区域 - 最小化 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- 状态指示器 -->
+            <TextView
+                android:id="@+id/statusTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="准备就绪"
+                android:textColor="@color/typeink_text_secondary"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.05" />
+
+            <!-- 最小化按钮 -->
+            <ImageButton
+                android:id="@+id/minimizeButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_minimize"
+                android:contentDescription="最小化"
+                app:tint="@color/typeink_text_secondary" />
+
+            <!-- 完成按钮 -->
+            <ImageButton
+                android:id="@+id/doneButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_done"
+                android:contentDescription="完成"
+                app:tint="@color/typeink_text_primary" />
+        </LinearLayout>
+
+        <!-- 波形可视化 - 居中的呼吸感 -->
+        <com.typeink.prototype.AudioWaveView
+            android:id="@+id/waveView"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="80dp" />
+
+        <!-- 主要文本区域 - 大字体，呼吸感 -->
+        <EditText
+            android:id="@+id/draftTextView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="160dp"
+            android:layout_marginBottom="80dp"
+            android:background="@null"
+            android:gravity="top|start"
+            android:hint="说出你的想法..."
+            android:textColor="@color/typeink_text_primary"
+            android:textColorHint="@color/typeink_text_hint"
+            android:textSize="24sp"
+            android:lineSpacingMultiplier="1.6"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="0.01"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:cursorVisible="true"
+            android:textCursorDrawable="@drawable/cursor_immersive"
+            android:scrollbars="vertical"
+            android:fadeScrollbars="true"
+            android:scrollbarStyle="outsideOverlay" />
+
+        <!-- 底部控制区域 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal">
+
+            <!-- 提示文字 -->
+            <TextView
+                android:id="@+id/hintTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginBottom="80dp"
+                android:text="点击麦克风开始说话，双指缩放退出"
+                android:textColor="@color/typeink_text_hint"
+                android:textSize="14sp"
+                android:alpha="0.6" />
+
+            <!-- 麦克风按钮 - 居中的视觉焦点 -->
+            <FrameLayout
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_mic_button_immersive">
+
+                <ImageButton
+                    android:id="@+id/micButton"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_mic_start"
+                    android:contentDescription="麦克风"
+                    android:scaleType="centerInside"
+                    app:tint="@color/typeink_text_primary" />
+            </FrameLayout>
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <!-- 边缘手势提示 - 淡入显示一次 -->
+    <LinearLayout
+        android:id="@+id/gestureHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:alpha="0">
+
+        <View
+            android:layout_width="32dp"
+            android:layout_height="4dp"
+            android:background="@drawable/handle_immersive" />
+    </LinearLayout>
+
+</FrameLayout>

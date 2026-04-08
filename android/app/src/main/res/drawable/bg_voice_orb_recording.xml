@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 红色发光 -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#33FF4757" />
+            <size android:width="76dp" android:height="76dp" />
+        </shape>
+    </item>
+    <!-- 主球体 - 红色玻璃 -->
+    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="70%"
+                android:centerX="0.4"
+                android:centerY="0.4"
+                android:startColor="#FFFF6B7A"
+                android:centerColor="#FFFF4757"
+                android:endColor="#CCFF4757" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_typeink_result_card"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/providerNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/typeink_text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/providerDescText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/typeink_muted"
+        android:textSize="14sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="16dp"
+        android:background="@color/typeink_border" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="API Key"
+        android:textColor="@color/typeink_text"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/apiKeyInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_typeink_input_field"
+        android:hint="输入 API Key（留空使用内置）"
+        android:inputType="textPassword"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/typeink_text"
+        android:textColorHint="@color/typeink_muted"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="模型"
+        android:textColor="@color/typeink_text"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/modelInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_typeink_input_field"
+        android:hint="输入模型名称（可选）"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/typeink_text"
+        android:textColorHint="@color/typeink_muted"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Base URL（可选）"
+        android:textColor="@color/typeink_text"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/urlInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_typeink_input_field"
+        android:hint="输入自定义 API 地址"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/typeink_text"
+        android:textColorHint="@color/typeink_muted"
+        android:textSize="14sp" />
+
+</LinearLayout>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    参考 HeliBoard 设计 - 带工具栏的键盘布局
+    顶部工具栏 + Android 原生 KeyboardView
+-->
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="336dp"
+    android:layout_gravity="bottom"
+    android:orientation="vertical"
+    android:background="#101318">
+
+    <!-- 顶部工具栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="#171B21">
+
+        <!-- 返回语音按钮 -->
+        <TextView
+            android:id="@+id/btnBackToVoice"
+            android:layout_width="68dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="返回语音"
+            android:textColor="@color/typeink_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_typeink_primary_pill" />
+
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+        <!-- 设置/更多按钮 -->
+        <TextView
+            android:id="@+id/btnSettings"
+            android:layout_width="44dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="⚙"
+            android:textColor="@color/typeink_text_secondary"
+            android:textSize="16sp"
+            android:background="@drawable/bg_typeink_key" />
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <!-- 隐藏键盘按钮 -->
+        <TextView
+            android:id="@+id/btnHideKeyboard"
+            android:layout_width="44dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="↓"
+            android:textColor="@color/typeink_text_secondary"
+            android:textSize="18sp"
+            android:background="@drawable/bg_typeink_key" />
+    </LinearLayout>
+
+    <!-- 键盘主体 -->
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboardView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#101318"
+        android:keyBackground="@drawable/bg_key_modern"
+        android:keyTextColor="#FFFFFF"
+        android:keyTextSize="18sp"
+        android:labelTextSize="13sp"
+        android:keyPreviewLayout="@null"
+        android:keyPreviewOffset="0dp"
+        android:shadowColor="#000000"
+        android:shadowRadius="2"
+        android:verticalCorrection="0dp" />
+
+</LinearLayout>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 基本权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    
+    <!-- Android 14+ 前台服务权限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    
+    <!-- 输入法必须声明 -->
+    <uses-permission android:name="android.permission.BIND_INPUT_METHOD" />
+    
+    <!-- Android 11+ 包可见性 -->
+    <queries>
+        <intent>
+            <action android:name="android.view.InputMethod" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Typeink"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 沉浸创作模式 -->
+        <activity
+            android:name="com.typeink.inputmethod.ImmersiveEditorActivity"
+            android:theme="@style/Theme.Typeink.Immersive"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="stateHidden"
+            android:exported="false" />
+
+        <!-- 设置中心 -->
+        <activity
+            android:name="com.typeink.settings.SettingsActivity"
+            android:label="设置"
+            android:exported="false" />
+
+        <!-- 厂商选择 -->
+        <activity
+            android:name="com.typeink.settings.ProviderListActivity"
+            android:label="选择引擎"
+            android:exported="false" />
+
+        <!-- VAD 设置 -->
+        <activity
+            android:name="com.typeink.vad.VadSettingsActivity"
+            android:label="VAD 设置"
+            android:exported="false" />
+
+        <!-- SyncClipboard 设置 -->
+        <activity
+            android:name="com.typeink.syncclipboard.SyncClipboardSettingsActivity"
+            android:label="SyncClipboard 设置"
+            android:exported="false" />
+
+        <!-- 语音输入 Activity（供第三方输入法调用） -->
+        <activity
+            android:name="com.typeink.ime.VoiceInputActivity"
+            android:theme="@style/Theme.Typeink.Immersive"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity="">
+            <intent-filter>
+                <action android:name="com.typeink.action.VOICE_INPUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- 语音识别服务 -->
+        <service
+            android:name="com.typeink.asr.TypeinkSpeechRecognitionService"
+            android:exported="true"
+            android:permission="android.permission.RECORD_AUDIO">
+            <intent-filter>
+                <action android:name="com.typeink.action.START_LISTENING" />
+                <action android:name="com.typeink.action.STOP_LISTENING" />
+                <action android:name="com.typeink.action.CANCEL" />
+            </intent-filter>
+        </service>
+
+        <!-- AI 编辑面板 -->
+        <activity
+            android:name="com.typeink.inputmethod.EditPanelActivity"
+            android:label="AI 编辑"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.typeink.inputmethod.TypeinkDebugPreviewReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.typeink.prototype.action.DEBUG_PREVIEW_SCENARIO" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 诊断版输入法（用于排查问题）-->
+        <service
+            android:name="com.typeink.inputmethod.DiagnosticIME"
+            android:label="🔴 Typeink 诊断版"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true"
+            android:directBootAware="true"
+            android:foregroundServiceType="microphone">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/input_method" />
+        </service>
+
+        <!-- 正式版输入法 -->
+        <service
+            android:name="com.typeink.inputmethod.TypeinkInputMethodService"
+            android:label="Typeink 输入法"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:theme="@style/Theme.Typeink.Ime"
+            android:exported="true"
+            android:directBootAware="true"
+            android:foregroundServiceType="microphone">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/input_method" />
+        </service>
+    </application>
+
+</manifest>
