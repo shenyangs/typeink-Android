@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.typeink.core.input.TypeinkInputPhase
 import com.typeink.core.input.TypeinkInputStateMapper
+import com.typeink.syncclipboard.ClipboardHistoryTracker
 
 class MainActivity : AppCompatActivity() {
     private lateinit var homeInputCoordinator: TypeinkHomeInputCoordinator
@@ -181,6 +182,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[TypeinkViewModel::class.java]
         homeInputCoordinator = TypeinkHomeInputCoordinator(this)
+        ClipboardHistoryTracker.start(this)
 
         backendStatusView = findViewById(R.id.backendStatus)
         statusSummaryView = findViewById(R.id.statusSummary)
@@ -232,6 +234,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         homeInputCoordinator.stopSession()
+        ClipboardHistoryTracker.stop()
         super.onDestroy()
     }
 

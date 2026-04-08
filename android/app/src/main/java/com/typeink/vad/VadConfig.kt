@@ -17,12 +17,33 @@ enum class VadBackend(val storageValue: String) {
     }
 }
 
+data class VadRuntimeStatus(
+    val isEnabled: Boolean,
+    val requestedBackend: VadBackend?,
+    val actualBackend: VadBackend?,
+    val detail: String,
+) {
+    fun toBadgeLabel(): String {
+        if (!isEnabled || requestedBackend == null || actualBackend == null) {
+            return "关闭"
+        }
+        return if (requestedBackend == actualBackend) {
+            actualBackend.name
+        } else {
+            "${requestedBackend.name}->${actualBackend.name}"
+        }
+    }
+
+    fun toSummaryText(): String = detail
+}
+
 /**
  * VAD 配置管理
  * 
  * 对标 参考键盘 的可配置停顿时间
  */
 class VadConfig(context: Context) {
+    private val appContext: Context = context.applicationContext
     
     companion object {
         private const val PREFS_NAME = "vad_config"
@@ -43,7 +64,7 @@ class VadConfig(context: Context) {
         const val MAX_SILENCE_TIMEOUT_MS = 3000L
         const val DEFAULT_SPEECH_THRESHOLD = 0.02f
         const val DEFAULT_SILENCE_THRESHOLD = 0.01f
-        val DEFAULT_VAD_BACKEND = VadBackend.ENERGY
+        val DEFAULT_VAD_BACKEND = VadBackend.TEN
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -106,13 +127,70 @@ class VadConfig(context: Context) {
     fun createVadProcessorOrNull(): VadProcessor? {
         if (!isVadEnabled) return null
         return when (backend) {
-            VadBackend.ENERGY,
-            VadBackend.TEN,
-            -> EnergyVadProcessor(
-                speechThreshold = speechThreshold,
-                silenceThreshold = silenceThreshold,
-                silenceTimeoutMs = silenceTimeoutMs
+            VadBackend.TEN ->
+                TenVadFactory.createProcessorOrNull(
+                    context = appContext,
+                    silenceTimeoutMs = silenceTimeoutMs,
+                ) ?: createEnergyProcessor()
+            VadBackend.ENERGY -> createEnergyProcessor()
+        }
+    }
+
+    fun preloadPreferredBackendIfPossible() {
+        if (!isVadEnabled) return
+        if (backend == VadBackend.TEN) {
+            TenVadFactory.preloadIfPossible(
+                context = appContext,
+                silenceTimeoutMs = silenceTimeoutMs,
             )
+        }
+    }
+
+    private fun createEnergyProcessor(): VadProcessor {
+        return EnergyVadProcessor(
+            speechThreshold = speechThreshold,
+            silenceThreshold = silenceThreshold,
+            silenceTimeoutMs = silenceTimeoutMs
+        )
+    }
+
+    fun resolveRuntimeStatus(): VadRuntimeStatus {
+        if (!isVadEnabled) {
+            return VadRuntimeStatus(
+                isEnabled = false,
+                requestedBackend = null,
+                actualBackend = null,
+                detail = "VAD 已关闭",
+            )
+        }
+
+        return when (backend) {
+            VadBackend.ENERGY ->
+                VadRuntimeStatus(
+                    isEnabled = true,
+                    requestedBackend = VadBackend.ENERGY,
+                    actualBackend = VadBackend.ENERGY,
+                    detail = "当前使用 Energy 能量阈值判停",
+                )
+
+            VadBackend.TEN -> {
+                val availability = TenVadFactory.resolveAvailability(appContext)
+                if (availability.isAvailable) {
+                    VadRuntimeStatus(
+                        isEnabled = true,
+                        requestedBackend = VadBackend.TEN,
+                        actualBackend = VadBackend.TEN,
+                        detail = availability.detail,
+                    )
+                } else {
+                    VadRuntimeStatus(
+                        isEnabled = true,
+                        requestedBackend = VadBackend.TEN,
+                        actualBackend = VadBackend.ENERGY,
+                        detail = "${availability.detail}，已回退 Energy",
+                    )
+                }
+            }
         }
     }
     
@@ -134,12 +212,9 @@ class VadConfig(context: Context) {
      * 获取配置描述
      */
     fun getConfigDescription(): String {
-        return if (isVadEnabled) {
-            val backendLabel = when (backend) {
-                VadBackend.ENERGY -> "Energy"
-                VadBackend.TEN -> "TEN（预留）"
-            }
-            "VAD已启用，当前后端 $backendLabel，静音超时 ${silenceTimeoutMs}ms"
+        val runtimeStatus = resolveRuntimeStatus()
+        return if (runtimeStatus.isEnabled) {
+            "VAD已启用，当前后端 ${runtimeStatus.toBadgeLabel()}，静音超时 ${silenceTimeoutMs}ms；${runtimeStatus.detail}"
         } else {
             "VAD已禁用"
         }

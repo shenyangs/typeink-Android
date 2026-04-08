@@ -1,7 +1,13 @@
 package com.typeink.inputmethod
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,12 +25,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,6 +67,15 @@ data class TypeinkImeShellModel(
     val blockedReason: String,
     val hasPendingPreview: Boolean,
     val canUndoRewrite: Boolean,
+    val isClipboardHistoryVisible: Boolean,
+    val clipboardHistory: List<ClipboardHistoryEntry>,
+)
+
+@Immutable
+data class ClipboardHistoryEntry(
+    val id: Long,
+    val text: String,
+    val timeDescription: String,
 )
 
 private data class ShellCopy(
@@ -94,6 +116,10 @@ fun TypeinkImeVoiceShell(
     onSend: () -> Unit,
     onKeyboard: () -> Unit,
     onHide: () -> Unit,
+    onClipboardToggle: () -> Unit,
+    onClipboardSelect: (ClipboardHistoryEntry) -> Unit,
+    onClipboardDelete: (ClipboardHistoryEntry) -> Unit,
+    onClipboardClear: () -> Unit,
     onUndoRewrite: () -> Unit,
     onCancelEdit: () -> Unit,
     onDoneEdit: () -> Unit,
@@ -147,6 +173,9 @@ fun TypeinkImeVoiceShell(
                     statusTone = copy.statusTone,
                     title = copy.title,
                     palette = palette,
+                    clipboardEnabled = true,
+                    clipboardExpanded = model.isClipboardHistoryVisible,
+                    onClipboardToggle = onClipboardToggle,
                     onHide = onHide,
                 )
                 PreviewBand(
@@ -189,6 +218,16 @@ fun TypeinkImeVoiceShell(
                 )
             }
         }
+
+        ClipboardHistorySheet(
+            visible = model.isClipboardHistoryVisible,
+            history = model.clipboardHistory,
+            palette = palette,
+            onClose = onClipboardToggle,
+            onSelect = onClipboardSelect,
+            onDelete = onClipboardDelete,
+            onClear = onClipboardClear,
+        )
     }
 }
 
@@ -198,6 +237,9 @@ private fun CompactStatusBar(
     statusTone: ShellStatusTone,
     title: String,
     palette: TypeinkImeShellPalette,
+    clipboardEnabled: Boolean,
+    clipboardExpanded: Boolean,
+    onClipboardToggle: () -> Unit,
     onHide: () -> Unit,
 ) {
     Row(
@@ -223,12 +265,355 @@ private fun CompactStatusBar(
         } else {
             Spacer(modifier = Modifier.weight(1f))
         }
-        IconKeyButton(
-            palette = palette,
-            size = 34.dp,
-            onClick = onHide,
-            iconRes = R.drawable.ic_keyboard_hide_thin,
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconKeyButton(
+                palette = palette,
+                size = 34.dp,
+                onClick = onClipboardToggle,
+                iconRes = R.drawable.ic_clipboard,
+                active = clipboardExpanded,
+                enabled = clipboardEnabled,
+            )
+            IconKeyButton(
+                palette = palette,
+                size = 34.dp,
+                onClick = onHide,
+                iconRes = R.drawable.ic_keyboard_hide_thin,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipboardHistorySheet(
+    visible: Boolean,
+    history: List<ClipboardHistoryEntry>,
+    palette: TypeinkImeShellPalette,
+    onClose: () -> Unit,
+    onSelect: (ClipboardHistoryEntry) -> Unit,
+    onDelete: (ClipboardHistoryEntry) -> Unit,
+    onClear: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 }),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 3 }),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0x660A0E13))
+                    .clickable(onClick = onClose),
+        ) {
+            ClipboardHistoryPanel(
+                history = history,
+                palette = palette,
+                onClose = onClose,
+                onSelect = onSelect,
+                onDelete = onDelete,
+                onClear = onClear,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipboardHistoryPanel(
+    history: List<ClipboardHistoryEntry>,
+    palette: TypeinkImeShellPalette,
+    onClose: () -> Unit,
+    onSelect: (ClipboardHistoryEntry) -> Unit,
+    onDelete: (ClipboardHistoryEntry) -> Unit,
+    onClear: () -> Unit,
+) {
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf(ClipboardHistoryFilter.ALL) }
+    val filteredItems = remember(history, query, filter) {
+        filterClipboardHistory(history, query, filter)
+    }
+
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Surface(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            color = Color(0xFF2F3137),
+            tonalElevation = 8.dp,
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color(0xFF44444A), Color(0xFF2E2E33), Color(0xFF25262B)),
+                            ),
+                        )
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Surface(
+                        modifier = Modifier.size(width = 40.dp, height = 40.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = palette.keySurfaceStrong,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_clipboard),
+                                contentDescription = "剪贴板历史",
+                                tint = palette.textPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "剪贴板",
+                            color = palette.textPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "最近 ${history.size}/${com.typeink.syncclipboard.ClipboardHistoryManager.MAX_HISTORY_SIZE} 条，点一下直接粘贴",
+                            color = palette.textHint,
+                            fontSize = 11.sp,
+                        )
+                    }
+                    IconKeyButton(
+                        palette = palette,
+                        size = 34.dp,
+                        onClick = onClear,
+                        iconRes = R.drawable.ic_clear,
+                        enabled = history.isNotEmpty(),
+                    )
+                    IconKeyButton(
+                        palette = palette,
+                        size = 34.dp,
+                        onClick = onClose,
+                        iconRes = R.drawable.ic_keyboard_hide_thin,
+                    )
+                }
+
+                SearchField(
+                    value = query,
+                    palette = palette,
+                    onValueChange = { query = it },
+                )
+
+                FilterRow(
+                    selected = filter,
+                    palette = palette,
+                    onSelected = { filter = it },
+                )
+
+                if (filteredItems.isEmpty()) {
+                    EmptyClipboardState(
+                        query = query,
+                        palette = palette,
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    LazyColumn(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(filteredItems, key = { it.id }) { item ->
+                            ClipboardHistoryCard(
+                                entry = item,
+                                palette = palette,
+                                onSelect = { onSelect(item) },
+                                onDelete = { onDelete(item) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchField(
+    value: String,
+    palette: TypeinkImeShellPalette,
+    onValueChange: (String) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFF232830),
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle =
+                androidx.compose.ui.text.TextStyle(
+                    color = palette.textPrimary,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(
+                        text = "搜索",
+                        color = palette.textHint,
+                        fontSize = 13.sp,
+                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (value.isBlank()) {
+                            Text(
+                                text = "搜索历史内容",
+                                color = palette.textHint,
+                                fontSize = 15.sp,
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            },
         )
+    }
+}
+
+private enum class ClipboardHistoryFilter(val label: String) {
+    ALL("全部"),
+    RECENT("最近"),
+    TEXT("文本"),
+    NUMBER("数字"),
+    LINK("链接"),
+}
+
+@Composable
+private fun FilterRow(
+    selected: ClipboardHistoryFilter,
+    palette: TypeinkImeShellPalette,
+    onSelected: (ClipboardHistoryFilter) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ClipboardHistoryFilter.entries.forEach { item ->
+            val active = item == selected
+            Surface(
+                modifier = Modifier.height(34.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = if (active) Color(0x26F26B4C) else Color.Transparent,
+                onClick = { onSelected(item) },
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = item.label,
+                        color = if (active) palette.accentWarm else palette.textSecondary,
+                        fontSize = 13.sp,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyClipboardState(
+    query: String,
+    palette: TypeinkImeShellPalette,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = if (query.isBlank()) "还没有可用的剪贴板历史" else "没有搜到匹配内容",
+                color = palette.textPrimary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = if (query.isBlank()) "先去复制一点文字，这里会自动收集最近 100 条。" else "换个关键词试试，或者切回“全部”。",
+                color = palette.textHint,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipboardHistoryCard(
+    entry: ClipboardHistoryEntry,
+    palette: TypeinkImeShellPalette,
+    onSelect: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Surface(
+        onClick = onSelect,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF4A4A4F),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.text,
+                    color = palette.textPrimary,
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = entry.timeDescription,
+                    color = palette.textHint,
+                    fontSize = 11.sp,
+                )
+            }
+            IconKeyButton(
+                palette = palette,
+                size = 30.dp,
+                onClick = onDelete,
+                iconRes = R.drawable.ic_clear,
+            )
+        }
     }
 }
 
@@ -579,25 +964,28 @@ private fun IconKeyButton(
     onClick: () -> Unit,
     text: String? = null,
     iconRes: Int? = null,
+    active: Boolean = false,
+    enabled: Boolean = true,
 ) {
     Surface(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier.size(size),
         shape = RoundedCornerShape(18.dp),
-        color = palette.keySurfaceStrong,
+        color = if (active) palette.errorSurface else palette.keySurfaceStrong,
     ) {
         Box(contentAlignment = Alignment.Center) {
             if (iconRes != null) {
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = text,
-                    tint = palette.textPrimary,
+                    tint = if (enabled) palette.textPrimary else palette.textHint,
                     modifier = Modifier.size(18.dp),
                 )
             } else {
                 Text(
                     text = text.orEmpty(),
-                    color = palette.textPrimary,
+                    color = if (enabled) palette.textPrimary else palette.textHint,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
@@ -605,6 +993,43 @@ private fun IconKeyButton(
             }
         }
     }
+}
+
+private fun filterClipboardHistory(
+    history: List<ClipboardHistoryEntry>,
+    query: String,
+    filter: ClipboardHistoryFilter,
+): List<ClipboardHistoryEntry> {
+    val normalizedQuery = query.trim()
+    return history.filterIndexed { index, item ->
+        val matchesFilter =
+            when (filter) {
+                ClipboardHistoryFilter.ALL -> true
+                ClipboardHistoryFilter.RECENT -> index < 8
+                ClipboardHistoryFilter.TEXT -> !isLikelyNumber(item.text) && !isLikelyLink(item.text)
+                ClipboardHistoryFilter.NUMBER -> isLikelyNumber(item.text)
+                ClipboardHistoryFilter.LINK -> isLikelyLink(item.text)
+            }
+        val matchesQuery =
+            normalizedQuery.isBlank() || item.text.contains(normalizedQuery, ignoreCase = true)
+        matchesFilter && matchesQuery
+    }
+}
+
+private fun isLikelyNumber(text: String): Boolean {
+    val normalized = text.trim()
+    if (normalized.isBlank()) return false
+    return normalized.all { it.isDigit() || it == ' ' || it == '+' || it == '-' }
+}
+
+private fun isLikelyLink(text: String): Boolean {
+    val normalized = text.trim().lowercase()
+    return normalized.startsWith("http://") ||
+        normalized.startsWith("https://") ||
+        normalized.startsWith("www.") ||
+        normalized.contains(".com") ||
+        normalized.contains(".cn") ||
+        normalized.contains(".io")
 }
 
 @Composable

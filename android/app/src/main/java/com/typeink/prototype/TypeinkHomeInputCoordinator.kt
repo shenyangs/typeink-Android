@@ -3,6 +3,7 @@ package com.typeink.prototype
 import android.content.Context
 import android.util.Log
 import com.typeink.asr.DraftRecognizer
+import com.typeink.asr.DraftRecognizerConfig
 
 /**
  * 宿主页语音输入会话协调器。
@@ -41,9 +42,10 @@ class TypeinkHomeInputCoordinator(
         fun onBackendError(message: String)
     }
 
+    private val appContext = context.applicationContext
     private val dashScopeService = DashScopeService(context)
     private val recorder = PcmRecorder()
-    private val localDraftRecognizer: DraftRecognizer = LocalDraftRecognizer(context)
+    private var localDraftRecognizer: DraftRecognizer? = null
 
     fun setStyleMode(mode: TypeinkStyleMode) {
         dashScopeService.setStyleMode(mode)
@@ -58,7 +60,9 @@ class TypeinkHomeInputCoordinator(
             return false
         }
 
-        localDraftRecognizer.start(
+        val draftRecognizer = DraftRecognizerConfig.load(appContext).createDraftRecognizer()
+        localDraftRecognizer = draftRecognizer
+        draftRecognizer.start(
             object : DraftRecognizer.Listener {
                 override fun onDraftText(text: String) {
                     listener.onLocalDraftText(text)
@@ -77,12 +81,12 @@ class TypeinkHomeInputCoordinator(
         dashScopeService.startAsr(
             object : DashScopeService.Listener {
                 override fun onAsrPartial(text: String) {
-                    localDraftRecognizer.stop()
+                    stopDraftRecognizer()
                     listener.onAsrPartial(text)
                 }
 
                 override fun onAsrFinal(text: String) {
-                    localDraftRecognizer.stop()
+                    stopDraftRecognizer()
                     listener.onAsrFinal(text)
                 }
 
@@ -104,6 +108,7 @@ class TypeinkHomeInputCoordinator(
         recorder.start(
             object : PcmRecorder.Listener {
                 override fun onAudioChunk(bytes: ByteArray) {
+                    localDraftRecognizer?.acceptAudioChunk(bytes)
                     dashScopeService.sendAudioChunk(bytes)
                 }
 
@@ -122,12 +127,17 @@ class TypeinkHomeInputCoordinator(
     }
 
     fun stopSession() {
-        localDraftRecognizer.stop()
+        stopDraftRecognizer()
         recorder.stop()
         dashScopeService.stopAsr()
     }
 
     fun clearSession() {
         stopSession()
+    }
+
+    private fun stopDraftRecognizer() {
+        localDraftRecognizer?.stop()
+        localDraftRecognizer = null
     }
 }

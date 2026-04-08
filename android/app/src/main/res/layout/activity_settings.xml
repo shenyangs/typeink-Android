@@ -31,7 +31,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="统一管理 ASR、改写引擎、智能判停和跨设备扩展。"
+                android:lineSpacingExtra="2dp"
+                android:text="统一管理语音识别、改写引擎、输入法接入、实验能力和诊断入口。"
                 android:textColor="@color/typeink_text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -43,6 +44,17 @@
             android:background="@drawable/bg_typeink_result_card"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:text="核心引擎"
+                android:textColor="@color/typeink_muted_soft"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
             <LinearLayout
                 android:id="@+id/asrSettingsItem"
                 android:layout_width="match_parent"
@@ -50,37 +62,31 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="语音识别 (ASR)"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="语音识别 (ASR)"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="控制离线 / 在线识别入口和优先级。"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="控制主识别引擎和云端保底入口。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/currentAsrProvider"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_typeink_status_badge"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
@@ -102,41 +108,127 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="文本改写 (LLM)"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="文本改写 (LLM)"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="控制润色模型、风格和兜底策略。"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="控制润色模型、语气风格和回退策略。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/currentLlmProvider"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_typeink_status_badge"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
                     android:text="DashScope"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
+                android:id="@+id/draftRecognizerItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="草稿识别底座"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="查看当前草稿识别走的是 Sherpa 还是系统识别。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentDraftRecognizerStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="Sherpa"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
+                android:id="@+id/vadSettingsItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="智能判停 (VAD)"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="控制自动停录灵敏度、等待时长和实际运行后端。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentVadStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="TEN / 1.5秒"
                     android:textColor="@color/typeink_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -149,48 +241,53 @@
             android:background="@drawable/bg_typeink_result_card"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:text="输入与扩展"
+                android:textColor="@color/typeink_muted_soft"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
             <LinearLayout
-                android:id="@+id/vadSettingsItem"
+                android:id="@+id/imeSetupItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="智能判停 (VAD)"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="控制自动停录的灵敏度和等待时长。"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
                 <TextView
-                    android:id="@+id/currentVadStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="输入法准备"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="查看启用、切换和麦克风权限 3 个准备状态，并直接跳系统入口。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentImeSetupStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_typeink_status_badge"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
-                    android:text="已开启 (1.5秒)"
+                    android:text="2/3 已完成"
                     android:textColor="@color/typeink_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -208,41 +305,173 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="本地剪贴板历史"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="剪贴板同步"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="同步多设备间的文本和剪贴板内容。"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="查看最近保存的剪贴板条目数量，并进入历史管理入口。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/currentSyncClipboardStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_typeink_status_badge"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
-                    android:text="未启用"
+                    android:text="暂无历史"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
+                android:id="@+id/homeConsoleItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="主页联调台"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="打开当前主控页，查看识别草稿、整理结果和输入法准备卡片。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentHomeConsoleStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="打开主页"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
+                android:id="@+id/immersiveModeItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="沉浸创作"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="直接进入全屏创作模式，体验长文连续口述。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentImmersiveStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="可直接打开"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
+                android:id="@+id/editPanelItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI 编辑面板"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="打开示例编辑页，体验语音修改、复制粘贴和工具栏能力。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentEditPanelStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="示例体验"
                     android:textColor="@color/typeink_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -254,6 +483,17 @@
             android:background="@drawable/bg_typeink_result_card"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:text="诊断与关于"
+                android:textColor="@color/typeink_muted_soft"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
             <LinearLayout
                 android:id="@+id/advancedSettingsItem"
                 android:layout_width="match_parent"
@@ -261,32 +501,37 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="当前接入状态"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="当前接入状态"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="查看云端引擎、草稿底座、VAD 和输入法准备的完整摘要。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="查看保底引擎、用户配置和回退状态。"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/currentAdvancedStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="查看详情"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <View
@@ -302,33 +547,25 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="关于 Typeink"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="关于 Typeink"
-                        android:textColor="@color/typeink_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/versionText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="版本 0.4.3"
-                        android:textColor="@color/typeink_muted"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/versionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="版本 0.4.3"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

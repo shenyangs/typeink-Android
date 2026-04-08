@@ -21,7 +21,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.typeink.prototype.AudioWaveView
 import com.typeink.prototype.DashScopeService
-import com.typeink.prototype.LocalDraftRecognizer
 import com.typeink.prototype.PcmRecorder
 import com.typeink.prototype.R
 import com.typeink.prototype.TypeinkStyleMode
@@ -56,7 +55,6 @@ class ImmersiveEditorActivity : Activity() {
     // 核心组件
     private val dashScopeService by lazy { DashScopeService(this) }
     private val recorder = PcmRecorder()
-    private var localDraftRecognizer: LocalDraftRecognizer? = null
     
     // UI 组件
     private lateinit var rootContainer: FrameLayout
@@ -87,8 +85,6 @@ class ImmersiveEditorActivity : Activity() {
         
         setContentView(R.layout.activity_immersive_editor)
         
-        // 初始化
-        localDraftRecognizer = LocalDraftRecognizer(this)
         currentStyleMode = TypeinkStyleMode.values()[
             intent.getIntExtra(EXTRA_STYLE_MODE, TypeinkStyleMode.NATURAL.ordinal)
         ]

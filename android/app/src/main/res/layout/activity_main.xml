@@ -293,42 +293,39 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <Button
                         android:id="@+id/enableImeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
                         android:background="@drawable/bg_typeink_secondary_pill"
                         android:text="@string/ime_enable"
                         android:textAllCaps="false"
                         android:textColor="@color/typeink_text"
-                        android:textSize="12sp" />
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/switchImeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/bg_typeink_secondary_pill"
                         android:text="@string/ime_switch"
                         android:textAllCaps="false"
                         android:textColor="@color/typeink_text"
-                        android:textSize="12sp" />
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/requestMicButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/bg_typeink_secondary_pill"
                         android:text="@string/ime_request_mic"
                         android:textAllCaps="false"
                         android:textColor="@color/typeink_text"
-                        android:textSize="12sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView

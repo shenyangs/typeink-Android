@@ -65,10 +65,10 @@
             android:label="VAD 设置"
             android:exported="false" />
 
-        <!-- SyncClipboard 设置 -->
+        <!-- 本地剪贴板历史 -->
         <activity
             android:name="com.typeink.syncclipboard.SyncClipboardSettingsActivity"
-            android:label="SyncClipboard 设置"
+            android:label="本地剪贴板"
             android:exported="false" />
 
         <!-- 语音输入 Activity（供第三方输入法调用） -->

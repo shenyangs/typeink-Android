@@ -31,6 +31,7 @@ import com.typeink.prototype.R
 import com.typeink.prototype.SessionInputSnapshot
 import com.typeink.prototype.TypeinkStyleMode
 import com.typeink.inputmethod.security.PasswordDetector
+import com.typeink.syncclipboard.ClipboardHistoryManager
 
 /**
  * Typeink 输入法视图。
@@ -98,6 +99,9 @@ class TypeinkInputView(
     private var currentEditorKey: EditorSessionKey? = null
     private val debugPreviewHandler = Handler(Looper.getMainLooper())
     private var debugPreviewToken: Int = 0
+    private val clipboardHistoryManager = ClipboardHistoryManager.getInstance(context)
+    private var isClipboardHistoryVisible: Boolean = false
+    private var clipboardHistoryEntries: List<ClipboardHistoryEntry> = emptyList()
 
     private var shellModel by mutableStateOf(
         TypeinkImeShellModel(
@@ -110,6 +114,8 @@ class TypeinkInputView(
             blockedReason = "",
             hasPendingPreview = false,
             canUndoRewrite = false,
+            isClipboardHistoryVisible = false,
+            clipboardHistory = emptyList(),
         ),
     )
 
@@ -197,6 +203,10 @@ class TypeinkInputView(
                 },
                 onKeyboard = { toggleInputMode() },
                 onHide = { host.requestHideIme() },
+                onClipboardToggle = { toggleClipboardHistoryPanel() },
+                onClipboardSelect = { applyClipboardHistoryEntry(it) },
+                onClipboardDelete = { deleteClipboardHistoryEntry(it) },
+                onClipboardClear = { clearClipboardHistory() },
                 onUndoRewrite = { undoLastRewrite() },
                 onCancelEdit = { exitEditMode() },
                 onDoneEdit = { exitEditMode() },
@@ -268,6 +278,10 @@ class TypeinkInputView(
     }
 
     private fun handleMicTap() {
+        if (isClipboardHistoryVisible) {
+            isClipboardHistoryVisible = false
+            syncShellModel()
+        }
         if (!voiceInputEnabled) return
         if (editSessionState.isProcessing) return
         if (!editSessionState.isActive && currentInputState.isProcessing && !isRecording) return
@@ -331,14 +345,16 @@ class TypeinkInputView(
             TypeinkImeShellModel(
                 inputState = currentInputState,
                 sessionTextState = sessionTextState,
-            editSessionState = editSessionState,
-            isKeyboardVisible = currentMode == InputMode.KEYBOARD,
-            amplitude = currentAmplitude,
-            voiceInputEnabled = voiceInputEnabled,
-            blockedReason = blockedReason,
-            hasPendingPreview = hostPreviewText.isNotEmpty(),
-            canUndoRewrite = undoPreviewText?.isNotBlank() == true && hostPreviewText.isNotEmpty() && !editSessionState.isActive,
-        )
+                editSessionState = editSessionState,
+                isKeyboardVisible = currentMode == InputMode.KEYBOARD,
+                amplitude = currentAmplitude,
+                voiceInputEnabled = voiceInputEnabled,
+                blockedReason = blockedReason,
+                hasPendingPreview = hostPreviewText.isNotEmpty(),
+                canUndoRewrite = undoPreviewText?.isNotBlank() == true && hostPreviewText.isNotEmpty() && !editSessionState.isActive,
+                isClipboardHistoryVisible = isClipboardHistoryVisible,
+                clipboardHistory = clipboardHistoryEntries,
+            )
     }
 
     private fun renderVoiceState(state: KeyboardState) {
@@ -359,6 +375,7 @@ class TypeinkInputView(
     }
 
     private fun toggleInputMode() {
+        isClipboardHistoryVisible = false
         currentMode = if (currentMode == InputMode.VOICE) InputMode.KEYBOARD else InputMode.VOICE
         updateModeUI()
     }
@@ -367,6 +384,8 @@ class TypeinkInputView(
         if (hostPreviewText.isNotEmpty()) {
             restoreOriginalHostText()
         }
+        refreshClipboardHistory()
+        isClipboardHistoryVisible = false
         currentMode = InputMode.VOICE
         sessionTextState = TypeinkSessionTextReducer.idle()
         editSessionState = TypeinkEditSessionReducer.inactive()
@@ -382,6 +401,49 @@ class TypeinkInputView(
             ),
         )
         updateModeUI()
+    }
+
+    private fun refreshClipboardHistory() {
+        clipboardHistoryEntries =
+            clipboardHistoryManager
+                .getAllHistory()
+                .map {
+                    ClipboardHistoryEntry(
+                        id = it.id,
+                        text = it.text,
+                        timeDescription = it.timeDescription,
+                    )
+                }
+    }
+
+    private fun toggleClipboardHistoryPanel() {
+        refreshClipboardHistory()
+        isClipboardHistoryVisible = !isClipboardHistoryVisible
+        syncShellModel()
+    }
+
+    private fun applyClipboardHistoryEntry(entry: ClipboardHistoryEntry) {
+        abandonPendingSession(resetUi = true)
+        isClipboardHistoryVisible = false
+        host.commitText(entry.text, 1)
+        refreshClipboardHistory()
+        syncShellModel()
+    }
+
+    private fun deleteClipboardHistoryEntry(entry: ClipboardHistoryEntry) {
+        clipboardHistoryManager.removeHistory(entry.id)
+        refreshClipboardHistory()
+        if (clipboardHistoryEntries.isEmpty()) {
+            isClipboardHistoryVisible = false
+        }
+        syncShellModel()
+    }
+
+    private fun clearClipboardHistory() {
+        clipboardHistoryManager.clearHistory()
+        refreshClipboardHistory()
+        isClipboardHistoryVisible = false
+        syncShellModel()
     }
 
     private fun showEditRecordingState() {

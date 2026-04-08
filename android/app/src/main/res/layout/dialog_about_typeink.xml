@@ -86,7 +86,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:lineSpacingExtra="4dp"
-            android:text="内置 DashScope 保底，也支持自定义 ASR / LLM / SyncClipboard 配置。"
+            android:text="内置 DashScope 保底，也支持自定义 ASR / LLM，并提供本地剪贴板历史。"
             android:textColor="@color/typeink_text_secondary"
             android:textSize="14sp" />
     </LinearLayout>

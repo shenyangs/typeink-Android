@@ -20,6 +20,14 @@ interface DraftRecognizer {
 
     fun start(listener: Listener)
 
+    /**
+     * 喂入实时 PCM 音频块。
+     *
+     * 系统 `SpeechRecognizer` 当前不需要这一步，因此默认留空；
+     * 后续 sherpa-onnx 这类本地模型会通过这里接收录音数据。
+     */
+    fun acceptAudioChunk(bytes: ByteArray) = Unit
+
     fun stop()
 
     fun isAvailable(): Boolean

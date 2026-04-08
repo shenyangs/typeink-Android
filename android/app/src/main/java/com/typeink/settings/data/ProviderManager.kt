@@ -329,9 +329,9 @@ class ProviderManager private constructor(context: Context) {
         val asr = getCurrentAsrProvider()
         val llm = getCurrentLlmProvider()
         return """
-            Provider Status:
-            ASR: ${asr.name} (${if (asr.hasUserConfig()) "用户配置" else "内置"}) valid=${asr.isValid()}
-            LLM: ${llm.name} (${if (llm.hasUserConfig()) "用户配置" else "内置"}) valid=${llm.isValid()}
+            当前云端配置：
+            ASR：${asr.name}（${if (asr.hasUserConfig()) "用户配置" else "内置"}），可用=${asr.isValid()}
+            LLM：${llm.name}（${if (llm.hasUserConfig()) "用户配置" else "内置"}），可用=${llm.isValid()}
         """.trimIndent()
     }
 }

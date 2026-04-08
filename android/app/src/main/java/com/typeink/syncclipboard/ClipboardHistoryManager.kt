@@ -21,13 +21,26 @@ class ClipboardHistoryManager(context: Context) {
         private const val TAG = "ClipboardHistory"
         private const val PREFS_NAME = "clipboard_history"
         private const val KEY_HISTORY = "history"
-        private const val MAX_HISTORY_SIZE = 100
+        const val MAX_HISTORY_SIZE = 100
+
+        @Volatile
+        private var instance: ClipboardHistoryManager? = null
+
+        fun getInstance(context: Context): ClipboardHistoryManager {
+            return instance ?: synchronized(this) {
+                instance ?: ClipboardHistoryManager(context.applicationContext).also { instance = it }
+            }
+        }
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     
     // 历史列表（线程安全）
     private val historyList = CopyOnWriteArrayList<HistoryItem>()
+
+    init {
+        loadHistory()
+    }
     
     /**
      * 历史项数据类
@@ -119,17 +132,21 @@ class ClipboardHistoryManager(context: Context) {
      * 添加历史项
      */
     fun addHistory(type: HistoryItem.ItemType, text: String, fileName: String = "") {
+        if (text.isBlank()) return
+
+        val normalizedText = text.trim()
+
         // 避免重复添加相同内容
         if (historyList.isNotEmpty()) {
             val last = historyList.first()
-            if (last.type == type && last.text == text) {
+            if (last.type == type && last.text == normalizedText) {
                 return
             }
         }
         
         val item = HistoryItem(
             type = type,
-            text = text,
+            text = normalizedText,
             fileName = fileName
         )
         
@@ -142,19 +159,6 @@ class ClipboardHistoryManager(context: Context) {
         
         saveHistory()
         Log.d(TAG, "Added history item: ${item.displayText.take(30)}")
-    }
-    
-    /**
-     * 添加来自 SyncClipboard 的数据
-     */
-    fun addFromSyncClipboard(data: SyncClipboardClient.ClipboardData) {
-        val type = when (data.type) {
-            SyncClipboardClient.ClipboardData.ClipboardType.TEXT -> HistoryItem.ItemType.TEXT
-            SyncClipboardClient.ClipboardData.ClipboardType.IMAGE -> HistoryItem.ItemType.IMAGE
-            SyncClipboardClient.ClipboardData.ClipboardType.FILE -> HistoryItem.ItemType.FILE
-            else -> HistoryItem.ItemType.TEXT
-        }
-        addHistory(type, data.text, data.fileName)
     }
     
     /**

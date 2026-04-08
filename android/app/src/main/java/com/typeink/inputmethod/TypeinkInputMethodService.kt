@@ -14,15 +14,17 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodSubtype
 import androidx.core.view.ViewCompat
-import com.typeink.asr.DraftRecognizer
+import com.typeink.asr.DraftRecognizerConfig
 import com.typeink.prototype.BuildConfig
 import com.typeink.prototype.DashScopeService
-import com.typeink.prototype.LocalDraftRecognizer
 import com.typeink.prototype.PcmRecorder
 import com.typeink.prototype.R
 import com.typeink.prototype.SessionInputSnapshot
 import com.typeink.prototype.SessionRewriteSource
 import com.typeink.inputmethod.security.PasswordDetector
+import com.typeink.syncclipboard.ClipboardHistoryTracker
+import com.typeink.vad.VadConfig
+import kotlin.concurrent.thread
 
 /**
  * Typeink 输入法主服务
@@ -68,9 +70,6 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
     // 核心组件
     val dashScopeService by lazy { DashScopeService(this) }
     val recorder = PcmRecorder()
-    val localDraftRecognizer: DraftRecognizer by lazy {
-        LocalDraftRecognizer(this)
-    }
     val inputHelper = InputConnectionHelper()
     private lateinit var keyboardActionHandler: KeyboardActionHandler
     private lateinit var asrSessionManager: AsrSessionManager
@@ -102,9 +101,18 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
             context = this,
             dashScopeService = dashScopeService,
             recorder = recorder,
-            localDraftRecognizer = localDraftRecognizer,
+            draftRecognizerProvider = { DraftRecognizerConfig.load(this).createDraftRecognizer() },
             actionHandler = keyboardActionHandler,
         )
+        thread(name = "typeink-local-runtime-preload", isDaemon = true) {
+            try {
+                VadConfig.load(this).preloadPreferredBackendIfPossible()
+                DraftRecognizerConfig.load(this).preloadPreferredBackendIfPossible()
+            } catch (t: Throwable) {
+                Log.w(TAG, "Local runtime preload skipped", t)
+            }
+        }
+        ClipboardHistoryTracker.start(this)
         activeInstance = this
         registerDebugReceiverIfNeeded()
         Log.d(TAG, "onCreate")
@@ -120,6 +128,7 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
         if (activeInstance === this) {
             activeInstance = null
         }
+        ClipboardHistoryTracker.stop()
         unregisterDebugReceiverIfNeeded()
         super.onDestroy()
     }

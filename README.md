@@ -1,7 +1,25 @@
-# Typeink
+<div align="center">
+  <h1>Typeink</h1>
+  <p><strong>为中文高频输入场景打造的 Android AI 输入法</strong></p>
+  <p>把“说话 -> 文本 -> 润色 -> 回写”收敛成一条低打扰、可持续演进的输入链路。</p>
+  <p>
+    <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-1677ff" alt="license"></a>
+    <img src="https://img.shields.io/badge/platform-Android%20IME-3fb950" alt="platform">
+    <img src="https://img.shields.io/badge/release-v0.4.3-2ea043" alt="release">
+    <img src="https://img.shields.io/badge/PRs-welcome-2ea043" alt="prs">
+  </p>
+</div>
 
-Typeink 是一个面向高频输入场景的 Android AI 输入法项目。  
-目标是把“说话 -> 文本 -> 润色 -> 回写”做成一条低打扰、可持续演进的输入链路。
+> 如果你想要一个可控、可迭代、面向中文的语音输入工作流，Typeink 可以直接作为 Android 侧主线起点。
+
+## 为什么是 Typeink
+
+| 核心维度 | Typeink 当前方案 | 常见语音输入痛点 |
+| --- | --- | --- |
+| 输入链路 | 语音识别 + 文本润色 + 回写一体化 | 语音、改写、回写经常分散在多个入口 |
+| 可控性 | 本地状态机明确，可逐步替换 ASR/VAD | 黑盒能力多，定位问题成本高 |
+| 演进方式 | 先最小闭环，再逐步升级真实模型 | 容易一次性改太大，回归成本高 |
+| 工程形态 | Android 主线清晰，文档与进度同步维护 | 文档与代码割裂，协作门槛高 |
 
 ## 当前发布状态
 
@@ -107,6 +125,10 @@ typeink-codex/
 - 逐步推进 Compose 语音画布接管
 - 升级本地 ASR + VAD 链路（降低云依赖）
 - 为 iOS / 桌面端复用预留更多纯核心层能力
+
+## 开源许可证
+
+本项目采用 [Apache License 2.0](./LICENSE)。
 
 ## 安全与协作提示
 

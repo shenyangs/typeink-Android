@@ -58,6 +58,16 @@ android {
         kotlinCompilerExtensionVersion "1.5.14"
     }
 
+    packaging {
+        jniLibs {
+            excludes += [
+                    "**/libonnxruntime4j_jni.so",
+                    "**/libsherpa-onnx-c-api.so",
+                    "**/libsherpa-onnx-cxx-api.so"
+            ]
+        }
+    }
+
 }
 
 dependencies {
@@ -78,6 +88,7 @@ dependencies {
     implementation "androidx.compose.material3:material3"
     implementation "com.google.android.material:material:1.12.0"
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
+    implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
     debugImplementation "androidx.compose.ui:ui-tooling"
     testImplementation "junit:junit:4.13.2"
 }

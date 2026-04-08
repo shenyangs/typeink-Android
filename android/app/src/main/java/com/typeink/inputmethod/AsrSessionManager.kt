@@ -23,7 +23,7 @@ class AsrSessionManager(
     private val context: Context,
     private val dashScopeService: DashScopeService,
     private val recorder: PcmRecorder,
-    private val localDraftRecognizer: DraftRecognizer,
+    private val draftRecognizerProvider: () -> DraftRecognizer,
     private val actionHandler: KeyboardActionHandler? = null
 ) {
     companion object {
@@ -51,6 +51,7 @@ class AsrSessionManager(
     private val mainHandler = Handler(Looper.getMainLooper())
     private val vadConfig = VadConfig.load(context)
     private var vadProcessor: VadProcessor? = null
+    private var localDraftRecognizer: DraftRecognizer? = null
     
     /**
      * 设置监听器
@@ -91,7 +92,9 @@ class AsrSessionManager(
             dashScopeService.setStyleMode(styleMode)
 
             // 启动本地草稿识别
-            localDraftRecognizer.start(
+            val draftRecognizer = draftRecognizerProvider()
+            localDraftRecognizer = draftRecognizer
+            draftRecognizer.start(
                 object : DraftRecognizer.Listener {
                     override fun onDraftText(text: String) {
                         if (!isSessionActive || !isCapturingAudio) return
@@ -114,7 +117,7 @@ class AsrSessionManager(
                 listener = object : DashScopeService.Listener {
                     override fun onAsrPartial(text: String) {
                         if (!isSessionActive) return
-                        localDraftRecognizer.stop()
+                        stopDraftRecognizer()
                         listener?.onAsrPartial(text)
                         actionHandler?.onAsrPartialInternal(text)
                     }
@@ -122,7 +125,7 @@ class AsrSessionManager(
                     override fun onAsrFinal(text: String) {
                         if (!isSessionActive) return
                         isAwaitingRemoteResult = false
-                        localDraftRecognizer.stop()
+                        stopDraftRecognizer()
                         listener?.onAsrFinal(text)
                         actionHandler?.onAsrFinalInternal(text)
                     }
@@ -159,6 +162,7 @@ class AsrSessionManager(
                 object : PcmRecorder.Listener {
                     override fun onAudioChunk(bytes: ByteArray) {
                         if (!isSessionActive || !isCapturingAudio) return
+                        localDraftRecognizer?.acceptAudioChunk(bytes)
                         vadProcessor?.process(bytes)
                         dashScopeService.sendAudioChunk(bytes)
                     }
@@ -188,7 +192,7 @@ class AsrSessionManager(
             isCapturingAudio = false
             isAwaitingRemoteResult = false
             recorder.stop()
-            localDraftRecognizer.stop()
+            stopDraftRecognizer()
             releaseVadProcessor()
             dashScopeService.stopAsr()
             val errorMsg = "启动语音会话失败: ${t.message ?: "未知错误"}"
@@ -219,7 +223,7 @@ class AsrSessionManager(
         releaseVadProcessor()
         
         // 停止本地草稿
-        localDraftRecognizer.stop()
+        stopDraftRecognizer()
         
         // 停止 DashScope ASR
         dashScopeService.stopAsr()
@@ -238,7 +242,7 @@ class AsrSessionManager(
         isAwaitingRemoteResult = false
         
         recorder.stop()
-        localDraftRecognizer.stop()
+        stopDraftRecognizer()
         releaseVadProcessor()
         dashScopeService.cancelActiveSession()
         
@@ -286,5 +290,10 @@ class AsrSessionManager(
     private fun releaseVadProcessor() {
         vadProcessor?.release()
         vadProcessor = null
+    }
+
+    private fun stopDraftRecognizer() {
+        localDraftRecognizer?.stop()
+        localDraftRecognizer = null
     }
 }
