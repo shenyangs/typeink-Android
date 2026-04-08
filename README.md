@@ -28,6 +28,28 @@
 - 技术栈：Kotlin、InputMethodService、Compose（逐步接管中）
 - 代码状态：可构建、可真机安装、持续迭代中
 
+## 技术栈
+
+### 当前已在用
+
+- Android 原生输入法：`InputMethodService` + Android 宿主 App 双入口
+- 主要开发语言：`Kotlin`
+- UI 形态：`Android View/XML` 为主，`Jetpack Compose` 逐步接管语音主画布
+- 网络与异步：`OkHttp`、`Kotlin Coroutines`
+- 云端语音与润色链路：`DashScope`
+- 音频链路：`PcmRecorder` + 会话管理 + 文本回写
+- 本地判停：`TEN-VAD`（已接入，失败自动回退轻量方案）
+- 本地剪贴板能力：最近 `100` 条本地文本历史 + IME 内部历史面板
+- 工程化：`Gradle`、`JUnit`、`tools/build_apk.sh` 自动递增出包
+
+### 正在补强 / 即将接入
+
+- 本地离线草稿识别：`sherpa-onnx` Streaming Paraformer
+- 本地模型管理：模型导入、设备目录校验、预热与回退
+- 语音主界面：继续推进 `Compose` 接管和 Typeless 风格交互
+- 可迁移核心层：进一步把输入状态、文本状态、会话规则下沉到纯 Kotlin 核心层
+- 跨端准备：为 iOS、Windows、macOS 复用预留更稳定的边界
+
 ## 目前已具备能力
 
 - 输入法基础壳与语音输入主链路
