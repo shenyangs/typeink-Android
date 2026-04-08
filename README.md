@@ -12,6 +12,12 @@
 
 > 如果你想要一个可控、可迭代、面向中文的语音输入工作流，Typeink 可以直接作为 Android 侧主线起点。
 
+## 界面示意
+
+| 主输入界面 | 设置中心 | 输入法实战 |
+| --- | --- | --- |
+| ![输入法主页](docs/readme-images/输入法主页.png) | ![设置中心](docs/readme-images/设置中心.png) | ![输入法实战](docs/readme-images/输入法实战.png) |
+
 ## 为什么是 Typeink
 
 | 核心维度 | Typeink 当前方案 | 常见语音输入痛点 |
