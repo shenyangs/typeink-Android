@@ -10,6 +10,10 @@
   </p>
 </div>
 
+<p align="center">
+  <img src="docs/readme-images/Typeink-cover.png" alt="Typeink cover" width="100%">
+</p>
+
 > 如果你想要一个可控、可迭代、面向中文的语音输入工作流，Typeink 可以直接作为 Android 侧主线起点。
 
 ## 界面示意
@@ -142,9 +146,9 @@ typeink-v{VERSION}-build{N}.apk
 
 ### GitHub 体验包获取
 
-- `发布包/` 目录用于生成待发布的 GitHub 体验 APK。
 - 由于 GitHub 普通仓库文件有 `100MB` 限制，体验 APK 不直接放进仓库历史。
 - 用户侧如果要下载最新体验包，优先从项目的 GitHub Release 附件获取。
+- 本地构建时，唯一 APK 输出目录是 `outputs/`。
 
 ## 目录结构
 
@@ -153,7 +157,6 @@ typeink-codex/
 ├─ android/                    # Android 主工程（唯一主代码）
 ├─ docs/                       # 架构、进度、方案、联调文档
 ├─ outputs/                    # 本地 APK 交付目录（默认不进 Git）
-├─ 发布包/                     # 待上传到 GitHub Release 的体验包目录
 ├─ tools/build_apk.sh          # APK 打包脚本（自动递增 build 号）
 └─ README.md
 ```
