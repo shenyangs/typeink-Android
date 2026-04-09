@@ -11,7 +11,6 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -52,6 +51,9 @@ class TypeinkInputView(
         private const val DEBUG_VOICE_ERROR = "error"
         private const val DEBUG_VOICE_CANCEL = "cancel"
         private const val DEBUG_VOICE_TIMEOUT = "timeout"
+        private const val EDIT_COMMAND_TIMEOUT_MS = 10_000L
+        private const val EDIT_REWRITE_TIMEOUT_MS = 20_000L
+        private const val EDIT_RETRY_DELAY_MS = 1_500L
     }
 
     enum class InputMode {
@@ -76,8 +78,9 @@ class TypeinkInputView(
     private var qwertyKeyboard: Keyboard? = null
     private var qwertyShiftKeyboard: Keyboard? = null
     private var symbolsKeyboard: Keyboard? = null
-    private var btnBackToVoice: TextView? = null
-    private var btnHideKeyboard: TextView? = null
+    private var btnBackToVoice: View? = null
+    private var btnSettings: View? = null
+    private var btnHideKeyboard: View? = null
     private var isShifted: Boolean = false
     private var isSymbols: Boolean = false
 
@@ -99,6 +102,10 @@ class TypeinkInputView(
     private var currentEditorKey: EditorSessionKey? = null
     private val debugPreviewHandler = Handler(Looper.getMainLooper())
     private var debugPreviewToken: Int = 0
+    private val editGuardHandler = Handler(Looper.getMainLooper())
+    private var editCommandWatchdogToken: Long = 0L
+    private var editRewriteWatchdogToken: Long = 0L
+    private var editRetryToken: Long = 0L
     private val clipboardHistoryManager = ClipboardHistoryManager.getInstance(context)
     private var isClipboardHistoryVisible: Boolean = false
     private var clipboardHistoryEntries: List<ClipboardHistoryEntry> = emptyList()
@@ -239,9 +246,11 @@ class TypeinkInputView(
             )
 
         btnBackToVoice = keyboardLayout.findViewById(R.id.btnBackToVoice)
+        btnSettings = keyboardLayout.findViewById(R.id.btnSettings)
         btnHideKeyboard = keyboardLayout.findViewById(R.id.btnHideKeyboard)
 
         btnBackToVoice?.setOnClickListener { toggleInputMode() }
+        btnSettings?.setOnClickListener { host.openSettings() }
         btnHideKeyboard?.setOnClickListener { host.requestHideIme() }
 
         qwertyKeyboard = Keyboard(context, R.xml.qwerty)
@@ -492,10 +501,14 @@ class TypeinkInputView(
     }
 
     private fun exitEditMode() {
-        editSessionState = TypeinkEditSessionReducer.inactive()
-        if (isRecording) {
-            stopRecording()
+        val wasEditing = editSessionState.isActive
+        clearEditAsyncGuards()
+        if (isRecording || wasEditing) {
+            host.stopVoiceInput()
         }
+        isRecording = false
+        currentAmplitude = 0f
+        editSessionState = TypeinkEditSessionReducer.inactive()
         syncShellModel()
     }
 
@@ -511,12 +524,19 @@ class TypeinkInputView(
     private fun startEditRecording() {
         if (isRecording || currentText.isEmpty()) return
 
+        invalidateEditCommandGuard()
+        invalidateEditRetryGuard()
+        invalidateEditRewriteGuard()
+        val commandToken = nextEditCommandWatchdogToken()
         isRecording = true
         showEditRecordingState()
+        scheduleEditCommandTimeout(commandToken)
 
         host.startEditCommandInput(object : TypeinkImeHost.EditCommandCallback {
             override fun onEditCommand(command: String) {
                 post {
+                    if (commandToken != editCommandWatchdogToken || !editSessionState.isListening) return@post
+                    invalidateEditCommandGuard()
                     isRecording = false
                     host.stopVoiceInput()
                     editSessionState = TypeinkEditSessionReducer.rewriting(editSessionState, command)
@@ -526,6 +546,8 @@ class TypeinkInputView(
 
             override fun onError(message: String) {
                 post {
+                    if (commandToken != editCommandWatchdogToken) return@post
+                    invalidateEditCommandGuard()
                     isRecording = false
                     editSessionState = TypeinkEditSessionReducer.failed(editSessionState, message)
                     currentAmplitude = 0f
@@ -537,11 +559,7 @@ class TypeinkInputView(
                             errorMessage = message,
                         ),
                     )
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (editSessionState.isActive && editSessionState.canRetry && !isRecording) {
-                            startEditRecording()
-                        }
-                    }, 1500)
+                    scheduleEditRetry()
                 }
             }
         })
@@ -550,6 +568,22 @@ class TypeinkInputView(
     private fun stopRecording() {
         if (!isRecording) return
         host.stopVoiceInput()
+        if (editSessionState.isListening) {
+            invalidateEditCommandGuard()
+            invalidateEditRetryGuard()
+            isRecording = false
+            currentAmplitude = 0f
+            editSessionState = TypeinkEditSessionReducer.primed()
+            renderVoiceState(
+                TypeinkInputState(
+                    phase = TypeinkInputPhase.IDLE,
+                    hint = "已停止修改指令录音，可重新开始。",
+                    finalText = currentText,
+                    voiceInputEnabled = voiceInputEnabled,
+                    blockedReason = blockedReason,
+                ),
+            )
+        }
     }
 
     private fun clearVoiceSessionAndRestoreHost() {
@@ -572,6 +606,7 @@ class TypeinkInputView(
     }
 
     private fun retryCurrentFailure() {
+        invalidateEditRetryGuard()
         if (editSessionState.isActive) {
             val lastInstruction = editSessionState.lastInstruction.trim()
             if (lastInstruction.isNotEmpty()) {
@@ -594,6 +629,7 @@ class TypeinkInputView(
             return
         }
 
+        clearEditAsyncGuards()
         isRecording = false
         currentAmplitude = 0f
         editSessionState = TypeinkEditSessionReducer.inactive()
@@ -663,9 +699,12 @@ class TypeinkInputView(
     }
 
     private fun applyEditByLLM(command: String) {
+        invalidateEditRetryGuard()
+        val rewriteToken = nextEditRewriteWatchdogToken()
         val baseText = currentText
         editSessionState = TypeinkEditSessionReducer.rewriting(editSessionState, command)
         showProcessingState()
+        scheduleEditRewriteTimeout(rewriteToken)
 
         host.editByInstruction(
             currentText = currentText,
@@ -673,6 +712,8 @@ class TypeinkInputView(
             listener = object : TypeinkImeHost.EditResultCallback {
                 override fun onEditResult(newText: String) {
                     post {
+                        if (rewriteToken != editRewriteWatchdogToken || editSessionState.phase != TypeinkEditPhase.REWRITING) return@post
+                        invalidateEditRewriteGuard()
                         isRecording = false
                         sessionTextState =
                             TypeinkSessionTextReducer.applyFinalResult(sessionTextState, newText)
@@ -698,6 +739,8 @@ class TypeinkInputView(
 
                 override fun onError(message: String) {
                     post {
+                        if (rewriteToken != editRewriteWatchdogToken) return@post
+                        invalidateEditRewriteGuard()
                         isRecording = false
                         editSessionState = TypeinkEditSessionReducer.failed(editSessionState, message)
                         renderVoiceState(
@@ -714,6 +757,93 @@ class TypeinkInputView(
                 }
             },
         )
+    }
+
+    private fun scheduleEditCommandTimeout(commandToken: Long) {
+        editGuardHandler.postDelayed({
+            if (commandToken != editCommandWatchdogToken) return@postDelayed
+            if (!editSessionState.isListening || !isRecording) return@postDelayed
+            Log.w(TAG, "Edit command listening timed out")
+            invalidateEditCommandGuard()
+            isRecording = false
+            currentAmplitude = 0f
+            host.stopVoiceInput()
+            editSessionState = TypeinkEditSessionReducer.failed(editSessionState, "修改指令识别超时")
+            renderVoiceState(
+                TypeinkInputState(
+                    phase = TypeinkInputPhase.FAILED,
+                    hint = "修改指令超时，再试一次。",
+                    finalText = currentText,
+                    errorMessage = "修改指令识别超时",
+                    voiceInputEnabled = voiceInputEnabled,
+                    blockedReason = blockedReason,
+                ),
+            )
+            scheduleEditRetry()
+        }, EDIT_COMMAND_TIMEOUT_MS)
+    }
+
+    private fun scheduleEditRewriteTimeout(rewriteToken: Long) {
+        editGuardHandler.postDelayed({
+            if (rewriteToken != editRewriteWatchdogToken) return@postDelayed
+            if (editSessionState.phase != TypeinkEditPhase.REWRITING) return@postDelayed
+            Log.w(TAG, "Edit rewrite timed out")
+            invalidateEditRewriteGuard()
+            isRecording = false
+            editSessionState = TypeinkEditSessionReducer.failed(editSessionState, "改写超时")
+            renderVoiceState(
+                TypeinkInputState(
+                    phase = TypeinkInputPhase.FAILED,
+                    hint = "修改超时，再试一次。",
+                    finalText = currentText,
+                    errorMessage = "改写超时",
+                    voiceInputEnabled = voiceInputEnabled,
+                    blockedReason = blockedReason,
+                ),
+            )
+        }, EDIT_REWRITE_TIMEOUT_MS)
+    }
+
+    private fun scheduleEditRetry() {
+        val retryToken = nextEditRetryToken()
+        editGuardHandler.postDelayed({
+            if (retryToken != editRetryToken) return@postDelayed
+            if (editSessionState.phase != TypeinkEditPhase.FAILED || isRecording) return@postDelayed
+            startEditRecording()
+        }, EDIT_RETRY_DELAY_MS)
+    }
+
+    private fun nextEditCommandWatchdogToken(): Long {
+        editCommandWatchdogToken += 1
+        return editCommandWatchdogToken
+    }
+
+    private fun invalidateEditCommandGuard() {
+        editCommandWatchdogToken += 1
+    }
+
+    private fun nextEditRewriteWatchdogToken(): Long {
+        editRewriteWatchdogToken += 1
+        return editRewriteWatchdogToken
+    }
+
+    private fun invalidateEditRewriteGuard() {
+        editRewriteWatchdogToken += 1
+    }
+
+    private fun nextEditRetryToken(): Long {
+        editRetryToken += 1
+        return editRetryToken
+    }
+
+    private fun invalidateEditRetryGuard() {
+        editRetryToken += 1
+    }
+
+    private fun clearEditAsyncGuards() {
+        invalidateEditCommandGuard()
+        invalidateEditRewriteGuard()
+        invalidateEditRetryGuard()
     }
 
     fun onStartInputView(
@@ -824,6 +954,7 @@ class TypeinkInputView(
     fun dispose() {
         abandonPendingSession(resetUi = false)
         debugPreviewHandler.removeCallbacksAndMessages(null)
+        editGuardHandler.removeCallbacksAndMessages(null)
         composeLifecycleOwner.destroy()
     }
 
@@ -1314,6 +1445,7 @@ class TypeinkInputView(
     }
 
     private fun abandonPendingSession(resetUi: Boolean) {
+        clearEditAsyncGuards()
         val hadPendingPreview = hostPreviewText.isNotEmpty()
         if (hadPendingPreview) {
             restoreOriginalHostText()

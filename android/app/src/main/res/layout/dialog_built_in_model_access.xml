@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_typeink_result_card"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/dialogBuiltInTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="内置模型激活码"
+        android:textColor="@color/typeink_text"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogBuiltInSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="4dp"
+        android:text="输入激活码后，可无限使用内置模型。未激活时默认试用 100 次。"
+        android:textColor="@color/typeink_text_secondary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dialogBuiltInBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_typeink_status_badge"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:text="试用剩余 100/100"
+        android:textColor="@color/typeink_text_secondary"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/dialogBuiltInUsageCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="剩余 100 / 100 次"
+        android:textColor="@color/typeink_text"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/dialogBuiltInUsageProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progress="100"
+        android:progressDrawable="@drawable/progress_built_in_model" />
+
+    <TextView
+        android:id="@+id/dialogBuiltInHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="试用次数会在使用内置识别或改写能力时消耗。"
+        android:textColor="@color/typeink_muted"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="激活码"
+        android:textColor="@color/typeink_text"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/dialogBuiltInCodeInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_typeink_input_field"
+        android:hint="请输入激活码"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/typeink_text"
+        android:textColorHint="@color/typeink_muted"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/dialogBuiltInCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_typeink_secondary_pill"
+            android:gravity="center"
+            android:paddingHorizontal="18dp"
+            android:text="取消"
+            android:textColor="@color/typeink_text_secondary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dialogBuiltInActivate"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_typeink_primary_pill"
+            android:gravity="center"
+            android:paddingHorizontal="18dp"
+            android:text="激活"
+            android:textColor="@color/typeink_text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

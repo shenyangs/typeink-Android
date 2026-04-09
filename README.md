@@ -5,7 +5,7 @@
   <p>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-1677ff" alt="license"></a>
     <img src="https://img.shields.io/badge/platform-Android%20IME-3fb950" alt="platform">
-    <img src="https://img.shields.io/badge/release-v0.4.3-2ea043" alt="release">
+    <img src="https://img.shields.io/badge/release-v0.5.0-2ea043" alt="release">
     <img src="https://img.shields.io/badge/PRs-welcome-2ea043" alt="prs">
   </p>
 </div>
@@ -29,7 +29,7 @@
 
 ## 当前发布状态
 
-- 当前版本：`0.4.3`（`versionCode 14`）
+- 当前版本：`0.5.0`（`versionCode 15`）
 - 当前主线：Android 输入法（IME）+ Android 宿主 App
 - 技术栈：Kotlin、InputMethodService、Compose（逐步接管中）
 - 代码状态：可构建、可真机安装、持续迭代中
@@ -63,6 +63,20 @@
 - 基础编辑与失败恢复流程
 - 设置中心（模型配置、VAD、调试相关能力）
 - APK 自动命名输出（支持 build 号递增）
+
+## 内置模型试用规则
+
+- 默认情况下，内置模型可免费试用 `100` 次。
+- 这里的“次数”，指使用内置识别或内置改写能力时的调用额度。
+- 如果你已经填写了自己的 API Key，就不会再消耗内置试用次数。
+- 在设置页输入激活码后，可解除试用次数限制，当前内置有效激活码：
+  - `shenyang`
+  - `samyum`
+
+说明：
+
+- 这是当前阶段的体验规则，目的是让用户可以先直接上手；
+- 激活码校验目前是本地方案，后续如有更正式的授权体系，会再升级。
 
 ## 快速开始
 
@@ -117,7 +131,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradle
 
 ```bash
 cd /Users/sam/Desktop/typeink-codex
-./tools/build_apk.sh 0.4.3
+./tools/build_apk.sh 0.5.0
 ```
 
 产物命名规则：
@@ -126,7 +140,27 @@ cd /Users/sam/Desktop/typeink-codex
 typeink-v{VERSION}-build{N}.apk
 ```
 
-示例：`typeink-v0.4.3-build10.apk`
+示例：`typeink-v0.5.0-build10.apk`
+
+### GitHub 体验包规则
+
+- `outputs/` 目录用于本地构建留档，默认不提交到 Git。
+- `发布包/` 目录用于生成“待上传到 GitHub Release 的体验包”。
+- 由于 GitHub 普通仓库文件有 `100MB` 限制，APK 不应直接作为普通 Git 文件提交到仓库历史。
+- 每次准备推送 GitHub 前，必须先重新构建一次：
+
+```bash
+cd /Users/sam/Desktop/typeink-codex
+./tools/build_apk.sh 0.5.0
+```
+
+- 构建完成后，脚本会同时生成：
+  - 本地留档包：`outputs/typeink-v{VERSION}-build{N}.apk`
+  - GitHub Release 体验包：`发布包/typeink-v{VERSION}-build{N}.apk`
+- 推送 GitHub 时：
+  - 代码正常走 Git 提交和推送；
+  - 最新的 `发布包/` APK 作为 GitHub Release 附件上传；
+  - 这样用户仍然可以直接下载体验，同时不会触发仓库大文件限制。
 
 ## 目录结构
 
@@ -134,7 +168,8 @@ typeink-v{VERSION}-build{N}.apk
 typeink-codex/
 ├─ android/                    # Android 主工程（唯一主代码）
 ├─ docs/                       # 架构、进度、方案、联调文档
-├─ outputs/                    # APK 对外交付目录
+├─ outputs/                    # 本地 APK 交付目录（默认不进 Git）
+├─ 发布包/                     # 待上传到 GitHub Release 的体验包目录
 ├─ tools/build_apk.sh          # APK 打包脚本（自动递增 build 号）
 └─ README.md
 ```

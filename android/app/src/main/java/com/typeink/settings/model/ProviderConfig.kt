@@ -65,6 +65,14 @@ data class ProviderConfig(
     fun getEffectiveModel(): String? {
         return userModel?.takeIf { it.isNotBlank() }
     }
+
+    /**
+     * 当前是否仍在使用内置 API Key。
+     * 只要用户没有自己填 API Key，就视为仍在消耗内置模型额度。
+     */
+    fun usesBuiltInAccess(): Boolean {
+        return userApiKey.isNullOrBlank() && !builtInApiKey.isNullOrBlank()
+    }
     
     /**
      * 是否有用户自定义配置

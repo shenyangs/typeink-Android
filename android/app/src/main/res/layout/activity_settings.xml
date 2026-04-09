@@ -148,6 +148,72 @@
                 android:background="@color/typeink_border" />
 
             <LinearLayout
+                android:id="@+id/builtInModelAccessItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="内置模型激活码"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="输入激活码后，可无限使用内置模型；未激活时默认试用 100 次。"
+                    android:textColor="@color/typeink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/currentBuiltInModelAccessStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_typeink_status_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="试用剩余 100/100"
+                    android:textColor="@color/typeink_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/currentBuiltInModelAccessCaption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="剩余 100 / 100 次"
+                    android:textColor="@color/typeink_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ProgressBar
+                    android:id="@+id/currentBuiltInModelAccessProgress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="10dp"
+                    android:max="100"
+                    android:progress="100"
+                    android:progressDrawable="@drawable/progress_built_in_model" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="18dp"
+                android:background="@color/typeink_border" />
+
+            <LinearLayout
                 android:id="@+id/draftRecognizerItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -563,7 +629,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="版本 0.4.3"
+                    android:text="版本 0.5.0"
                     android:textColor="@color/typeink_muted"
                     android:textSize="13sp" />
             </LinearLayout>

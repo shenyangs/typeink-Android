@@ -27,6 +27,8 @@ interface TypeinkImeHost {
 
     fun requestHideIme()
 
+    fun openSettings()
+
     fun resolveCurrentSnapshot(): SessionInputSnapshot
 
     fun commitText(text: CharSequence, newCursorPosition: Int = 1): Boolean

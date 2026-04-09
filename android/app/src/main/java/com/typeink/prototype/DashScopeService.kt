@@ -2,7 +2,9 @@ package com.typeink.prototype
 
 import android.content.Context
 import android.util.Log
+import com.typeink.settings.data.BuiltInModelAccessManager
 import com.typeink.settings.data.ProviderManager
+import com.typeink.settings.model.ProviderConfig
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -75,6 +77,9 @@ class DashScopeService(
     private val appContext = context?.applicationContext
     private val providerManager: ProviderManager? by lazy {
         appContext?.let { ProviderManager.getInstance(it) }
+    }
+    private val builtInModelAccessManager: BuiltInModelAccessManager? by lazy {
+        appContext?.let { BuiltInModelAccessManager.getInstance(it) }
     }
 
     private var asrWebSocket: WebSocket? = null
@@ -184,6 +189,8 @@ class DashScopeService(
         listener: Listener,
         snapshot: SessionInputSnapshot,
     ) {
+        val provider = providerManager?.getCurrentAsrProvider()
+        if (!consumeBuiltInQuotaIfNeeded(provider, listener::onError)) return
         val asrConfig = resolveAsrRuntimeConfig()
         if (asrConfig.apiKey.isBlank()) {
             listener.onError("DashScope Key 还没配置，暂时无法启动语音识别。")
@@ -700,6 +707,8 @@ class DashScopeService(
     ) {
         val generation = nextGeneration()
         Log.d("DashScopeService", "editByInstruction called: text='$currentText', instruction='$instruction'")
+        val provider = providerManager?.getCurrentLlmProvider()
+        if (!consumeBuiltInQuotaIfNeeded(provider, listener::onError)) return
         
         val llmConfig = resolveLlmRuntimeConfig()
         if (llmConfig.apiKey.isBlank()) {
@@ -750,54 +759,81 @@ class DashScopeService(
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
                 .build()
         
-        cancelPendingNetworkCalls()
-        activeEditCall = client.newCall(request).also { call ->
-            call.enqueue(
-            object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    if (!isGenerationActive(generation)) return
-                    Log.e("DashScopeService", "编辑请求失败: ${e.message}", e)
-                    listener.onError("网络错误: ${e.message}")
-                }
-                
-                override fun onResponse(call: Call, response: Response) {
-                    if (!isGenerationActive(generation)) {
-                        response.close()
-                        return
-                    }
-                    try {
-                        if (!response.isSuccessful) {
-                            val errorBody = response.body?.string()
-                            Log.e("DashScopeService", "编辑请求失败: ${response.code}, $errorBody")
-                            listener.onError("请求失败: ${response.code}")
-                            return
-                        }
-                        
-                        val responseBody = response.body?.string() ?: ""
-                        val jsonResponse = JSONObject(responseBody)
-                        val choices = jsonResponse.optJSONArray("choices")
-                        
-                        if (choices != null && choices.length() > 0) {
-                            val message = choices.getJSONObject(0).optJSONObject("message")
-                            val newText = message?.optString("content", currentText) ?: currentText
-                            Log.d("DashScopeService", "编辑完成: original='$currentText' -> new='$newText'")
-                            if (isGenerationActive(generation)) {
-                                listener.onEditResult(newText.trim())
-                            }
-                        } else {
-                            Log.e("DashScopeService", "Empty choices in response")
-                            listener.onError("返回结果为空")
-                        }
-                    } catch (e: Exception) {
-                        Log.e("DashScopeService", "解析编辑结果失败: ${e.message}", e)
-                        listener.onError("解析失败: ${e.message}")
-                    } finally {
-                        response.close()
-                    }
-                }
-            },
-        )
+        val resultResolved = AtomicBoolean(false)
+
+        fun deliverEditResultOnce(newText: String) {
+            if (!isGenerationActive(generation)) return
+            if (!resultResolved.compareAndSet(false, true)) return
+            listener.onEditResult(newText.trim())
         }
+
+        fun deliverEditErrorOnce(message: String) {
+            if (!isGenerationActive(generation)) return
+            if (!resultResolved.compareAndSet(false, true)) return
+            listener.onError(message)
+        }
+
+        fun executeEditRequest(remainingRetryCount: Int) {
+            activeEditCall = client.newCall(request).also { call ->
+                call.enqueue(
+                    object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            if (!isGenerationActive(generation) || call.isCanceled()) return
+                            Log.e("DashScopeService", "编辑请求失败: ${e.message}", e)
+                            if (remainingRetryCount > 0) {
+                                Log.w("DashScopeService", "编辑请求失败，准备自动重试一次")
+                                executeEditRequest(remainingRetryCount - 1)
+                                return
+                            }
+                            deliverEditErrorOnce("网络错误: ${e.message}")
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            if (!isGenerationActive(generation)) {
+                                response.close()
+                                return
+                            }
+                            try {
+                                if (!response.isSuccessful) {
+                                    val errorBody = response.body?.string()
+                                    Log.e("DashScopeService", "编辑请求失败: ${response.code}, $errorBody")
+                                    if (remainingRetryCount > 0 && shouldRetryEditRequest(response.code)) {
+                                        response.close()
+                                        Log.w("DashScopeService", "编辑请求返回 ${response.code}，准备自动重试一次")
+                                        executeEditRequest(remainingRetryCount - 1)
+                                        return
+                                    }
+                                    deliverEditErrorOnce("请求失败: ${response.code}")
+                                    return
+                                }
+
+                                val responseBody = response.body?.string() ?: ""
+                                val jsonResponse = JSONObject(responseBody)
+                                val choices = jsonResponse.optJSONArray("choices")
+
+                                if (choices != null && choices.length() > 0) {
+                                    val message = choices.getJSONObject(0).optJSONObject("message")
+                                    val newText = message?.optString("content", currentText) ?: currentText
+                                    Log.d("DashScopeService", "编辑完成: original='$currentText' -> new='$newText'")
+                                    deliverEditResultOnce(newText)
+                                } else {
+                                    Log.e("DashScopeService", "Empty choices in response")
+                                    deliverEditErrorOnce("返回结果为空")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("DashScopeService", "解析编辑结果失败: ${e.message}", e)
+                                deliverEditErrorOnce("解析失败: ${e.message}")
+                            } finally {
+                                response.close()
+                            }
+                        }
+                    },
+                )
+            }
+        }
+
+        cancelPendingNetworkCalls()
+        executeEditRequest(1)
     }
 
     private fun closeAsrSocket() {
@@ -824,11 +860,15 @@ class DashScopeService(
     
     private var editCommandListener: EditCommandListener? = null
     private var latestEditCommand: String = ""
+    @Volatile
+    private var editCommandResolved = false
     
     /**
      * 启动 ASR 仅用于识别编辑命令（不听写，不润色，纯 ASR）
      */
     fun startAsrForEdit(listener: EditCommandListener) {
+        val provider = providerManager?.getCurrentAsrProvider()
+        if (!consumeBuiltInQuotaIfNeeded(provider, listener::onError)) return
         val asrConfig = resolveAsrRuntimeConfig()
         if (asrConfig.apiKey.isBlank()) {
             listener.onError("DashScope Key 还没配置")
@@ -837,6 +877,7 @@ class DashScopeService(
         
         this.editCommandListener = listener
         this.latestEditCommand = ""
+        this.editCommandResolved = false
         this.activeAsrConfig = asrConfig
         val generation = nextGeneration()
         
@@ -878,7 +919,7 @@ class DashScopeService(
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 if (!isGenerationActive(generation)) return
                 Log.e("DashScopeService", "Edit ASR 连接失败: ${t.message}", t)
-                listener.onError("ASR 连接失败")
+                deliverEditCommandErrorOnce(listener, generation, "ASR 连接失败")
                 closeAsrSocket()
             }
         }
@@ -934,35 +975,74 @@ class DashScopeService(
                         Log.d("DashScopeService", "Edit ASR partial: $resultText, end=$sentenceEnd")
                         
                         if (sentenceEnd) {
-                            // 句子结束，返回命令
-                            if (isGenerationActive(generation)) {
-                                listener.onEditCommand(resultText)
-                            }
+                            deliverEditCommandOnce(listener, generation, resultText)
                             closeAsrSocket()
                         }
                     }
                 }
                 
                 "task-finished" -> {
-                    // 任务完成，如果有积累的命令也返回
                     if (latestEditCommand.isNotBlank()) {
-                        if (isGenerationActive(generation)) {
-                            listener.onEditCommand(latestEditCommand)
-                        }
+                        deliverEditCommandOnce(listener, generation, latestEditCommand)
+                    } else {
+                        deliverEditCommandErrorOnce(listener, generation, "未能识别到修改指令")
                     }
                     closeAsrSocket()
                 }
                 
                 "task-failed" -> {
                     val errorMessage = header?.optString("error_message", "任务失败").orEmpty()
-                    listener.onError("ASR 失败: $errorMessage")
+                    deliverEditCommandErrorOnce(listener, generation, "ASR 失败: $errorMessage")
                     closeAsrSocket()
                 }
             }
         } catch (e: Exception) {
             Log.e("DashScopeService", "解析编辑 ASR 响应失败: $text", e)
-            listener.onError("解析失败")
+            deliverEditCommandErrorOnce(listener, generation, "解析失败")
         }
+    }
+
+    private fun deliverEditCommandOnce(
+        listener: EditCommandListener,
+        generation: Long,
+        command: String,
+    ) {
+        if (!isGenerationActive(generation) || command.isBlank()) return
+        if (editCommandResolved) return
+        synchronized(this) {
+            if (!isGenerationActive(generation) || editCommandResolved) return
+            editCommandResolved = true
+        }
+        listener.onEditCommand(command)
+    }
+
+    private fun deliverEditCommandErrorOnce(
+        listener: EditCommandListener,
+        generation: Long,
+        message: String,
+    ) {
+        if (!isGenerationActive(generation) || message.isBlank()) return
+        if (editCommandResolved) return
+        synchronized(this) {
+            if (!isGenerationActive(generation) || editCommandResolved) return
+            editCommandResolved = true
+        }
+        listener.onError(message)
+    }
+
+    private fun consumeBuiltInQuotaIfNeeded(
+        provider: ProviderConfig?,
+        onBlocked: (String) -> Unit,
+    ): Boolean {
+        if (provider == null || !provider.usesBuiltInAccess()) return true
+        val accessManager = builtInModelAccessManager ?: return true
+        if (accessManager.tryConsumeBuiltInUse()) return true
+        onBlocked(accessManager.buildLimitReachedMessage())
+        return false
+    }
+
+    private fun shouldRetryEditRequest(statusCode: Int): Boolean {
+        return statusCode >= 500 || statusCode == 429 || statusCode == 408
     }
 
     private fun resolveAsrRuntimeConfig(): AsrRuntimeConfig {

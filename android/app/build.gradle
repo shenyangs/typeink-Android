@@ -28,8 +28,8 @@ android {
         applicationId "com.typeink.prototype"
         minSdk 29
         targetSdk 34
-        versionCode 14
-        versionName "0.4.3"
+        versionCode 15
+        versionName "0.5.0"
         buildConfigField "String", "DASHSCOPE_API_KEY", "\"${dashScopeApiKey.replace("\\", "\\\\").replace("\"", "\\\"")}\""
     }
 

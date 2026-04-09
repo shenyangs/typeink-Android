@@ -22,9 +22,11 @@ import com.typeink.prototype.R
 import com.typeink.prototype.SessionInputSnapshot
 import com.typeink.prototype.SessionRewriteSource
 import com.typeink.inputmethod.security.PasswordDetector
+import com.typeink.settings.SettingsActivity
 import com.typeink.syncclipboard.ClipboardHistoryTracker
 import com.typeink.vad.VadConfig
 import kotlin.concurrent.thread
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Typeink 输入法主服务
@@ -416,6 +418,14 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
         requestHideSelf(0)
     }
 
+    override fun openSettings() {
+        startActivity(
+            Intent(this, SettingsActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
+    }
+
     override fun resolveCurrentSnapshot(): SessionInputSnapshot {
         val ic = currentInputConnection
         val selectedText = inputHelper.getSelectedText(ic)?.toString().orEmpty()
@@ -552,16 +562,26 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
     }
 
     override fun startEditCommandInput(listener: TypeinkImeHost.EditCommandCallback) {
+        val resolved = AtomicBoolean(false)
+
+        fun resolveEditCommand(block: () -> Unit) {
+            if (!resolved.compareAndSet(false, true)) return
+            recorder.stop()
+            block()
+        }
+
         dashScopeService.startAsrForEdit(
             object : DashScopeService.EditCommandListener {
                 override fun onEditCommand(command: String) {
-                    recorder.stop()
-                    listener.onEditCommand(command)
+                    resolveEditCommand {
+                        listener.onEditCommand(command)
+                    }
                 }
 
                 override fun onError(message: String) {
-                    recorder.stop()
-                    listener.onError(message)
+                    resolveEditCommand {
+                        listener.onError(message)
+                    }
                 }
             },
         )
@@ -573,6 +593,10 @@ class TypeinkInputMethodService : InputMethodService(), TypeinkImeHost {
 
                 override fun onError(message: String) {
                     Log.e(TAG, "Recorder error while edit command input: $message")
+                    resolveEditCommand {
+                        dashScopeService.cancelActiveSession()
+                        listener.onError("录音异常：$message")
+                    }
                 }
 
                 override fun onAmplitude(level: Float) = Unit

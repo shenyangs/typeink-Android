@@ -38,6 +38,7 @@ class ProviderManager private constructor(context: Context) {
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val builtInModelAccessManager = BuiltInModelAccessManager.getInstance(context)
     
     // 内存中的配置缓存
     private var asrProviders: MutableList<ProviderConfig> = mutableListOf()
@@ -152,13 +153,17 @@ class ProviderManager private constructor(context: Context) {
      */
     fun getCurrentAsrProvider(): ProviderConfig {
         if (asrProviders.isEmpty()) {
-            return BuiltInProviders.dashScopeAsr()  // 保底
+            return sanitizeFallbackProvider(BuiltInProviders.dashScopeAsr())  // 保底
         }
-        // 确保索引有效
         if (currentAsrIndex >= asrProviders.size) {
             currentAsrIndex = 0
         }
-        return asrProviders[currentAsrIndex]
+        val resolvedIndex = findUsableProviderIndex(asrProviders, currentAsrIndex)
+        if (resolvedIndex >= 0) {
+            currentAsrIndex = resolvedIndex
+            return asrProviders[currentAsrIndex]
+        }
+        return sanitizeFallbackProvider(asrProviders[currentAsrIndex])
     }
     
     /**
@@ -166,12 +171,17 @@ class ProviderManager private constructor(context: Context) {
      */
     fun getCurrentLlmProvider(): ProviderConfig {
         if (llmProviders.isEmpty()) {
-            return BuiltInProviders.dashScopeLlm()  // 保底
+            return sanitizeFallbackProvider(BuiltInProviders.dashScopeLlm())  // 保底
         }
         if (currentLlmIndex >= llmProviders.size) {
             currentLlmIndex = 0
         }
-        return llmProviders[currentLlmIndex]
+        val resolvedIndex = findUsableProviderIndex(llmProviders, currentLlmIndex)
+        if (resolvedIndex >= 0) {
+            currentLlmIndex = resolvedIndex
+            return llmProviders[currentLlmIndex]
+        }
+        return sanitizeFallbackProvider(llmProviders[currentLlmIndex])
     }
     
     /**
@@ -283,7 +293,7 @@ class ProviderManager private constructor(context: Context) {
         do {
             currentAsrIndex = (currentAsrIndex + 1) % asrProviders.size
             val next = getCurrentAsrProvider()
-            if (next.isValid() && next.failCount < 3) {
+            if (isProviderUsable(next) && next.failCount < 3) {
                 Log.i(TAG, "Switched to ASR provider: ${next.id}")
                 return true
             }
@@ -298,7 +308,7 @@ class ProviderManager private constructor(context: Context) {
         do {
             currentLlmIndex = (currentLlmIndex + 1) % llmProviders.size
             val next = getCurrentLlmProvider()
-            if (next.isValid() && next.failCount < 3) {
+            if (isProviderUsable(next) && next.failCount < 3) {
                 Log.i(TAG, "Switched to LLM provider: ${next.id}")
                 return true
             }
@@ -332,6 +342,41 @@ class ProviderManager private constructor(context: Context) {
             当前云端配置：
             ASR：${asr.name}（${if (asr.hasUserConfig()) "用户配置" else "内置"}），可用=${asr.isValid()}
             LLM：${llm.name}（${if (llm.hasUserConfig()) "用户配置" else "内置"}），可用=${llm.isValid()}
+            
+            内置模型额度：
+            ${builtInModelAccessManager.getSummaryText()}
         """.trimIndent()
+    }
+
+    private fun findUsableProviderIndex(
+        providers: List<ProviderConfig>,
+        startIndex: Int,
+    ): Int {
+        if (providers.isEmpty()) return -1
+        var index = startIndex.coerceIn(0, providers.lastIndex)
+        repeat(providers.size) {
+            val candidate = providers[index]
+            if (isProviderUsable(candidate)) {
+                return index
+            }
+            index = (index + 1) % providers.size
+        }
+        return -1
+    }
+
+    private fun isProviderUsable(config: ProviderConfig): Boolean {
+        if (!config.isEnabled || !config.isValid()) return false
+        if (config.usesBuiltInAccess() && !builtInModelAccessManager.canUseBuiltInModel()) {
+            return false
+        }
+        return true
+    }
+
+    private fun sanitizeFallbackProvider(config: ProviderConfig): ProviderConfig {
+        return if (config.usesBuiltInAccess() && !builtInModelAccessManager.canUseBuiltInModel()) {
+            config.copy(builtInApiKey = null)
+        } else {
+            config
+        }
     }
 }

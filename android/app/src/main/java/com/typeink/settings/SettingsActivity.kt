@@ -9,7 +9,9 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -22,6 +24,7 @@ import com.typeink.inputmethod.TypeinkInputMethodService
 import com.typeink.prototype.MainActivity
 import com.typeink.prototype.R
 import com.typeink.prototype.TypeinkStyleMode
+import com.typeink.settings.data.BuiltInModelAccessManager
 import com.typeink.settings.data.ProviderManager
 import com.typeink.settings.model.ProviderType
 import com.typeink.syncclipboard.ClipboardHistoryManager
@@ -48,6 +51,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private lateinit var providerManager: ProviderManager
+    private lateinit var builtInModelAccessManager: BuiltInModelAccessManager
     private val micPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             refreshAllStatuses()
@@ -63,6 +67,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         providerManager = ProviderManager.getInstance(this)
+        builtInModelAccessManager = BuiltInModelAccessManager.getInstance(this)
         ClipboardHistoryTracker.start(this)
 
         initViews()
@@ -84,6 +89,10 @@ class SettingsActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.vadSettingsItem)?.setOnClickListener {
             VadSettingsActivity.start(this)
+        }
+
+        findViewById<LinearLayout>(R.id.builtInModelAccessItem)?.setOnClickListener {
+            showBuiltInModelAccessDialog()
         }
 
         findViewById<LinearLayout>(R.id.imeSetupItem)?.setOnClickListener {
@@ -135,6 +144,7 @@ class SettingsActivity : AppCompatActivity() {
         updateProviderStatus()
         updateDraftRecognizerStatus()
         updateVadStatus()
+        updateBuiltInModelAccessStatus()
         updateClipboardHistoryStatus()
         updateImeSetupStatus()
         updateFeatureEntryStatus()
@@ -171,6 +181,17 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 "关闭"
             }
+    }
+
+    private fun updateBuiltInModelAccessStatus() {
+        findViewById<TextView>(R.id.currentBuiltInModelAccessStatus)?.text =
+            builtInModelAccessManager.getBadgeLabel()
+        findViewById<TextView>(R.id.currentBuiltInModelAccessCaption)?.text =
+            builtInModelAccessManager.getUsageCaption()
+        findViewById<ProgressBar>(R.id.currentBuiltInModelAccessProgress)?.apply {
+            max = BuiltInModelAccessManager.TRIAL_LIMIT
+            progress = builtInModelAccessManager.getProgressValue()
+        }
     }
 
     private fun updateClipboardHistoryStatus() {
@@ -218,9 +239,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun getVersionName(): String {
         return try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "0.4.3"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "0.5.0"
         } catch (e: Exception) {
-            "0.4.3"
+            "0.5.0"
         }
     }
 
@@ -235,6 +256,8 @@ class SettingsActivity : AppCompatActivity() {
                 appendLine("草稿识别：${draftStatus.toSummaryText()}")
                 appendLine()
                 appendLine("智能判停：${vadStatus.toSummaryText()}")
+                appendLine()
+                appendLine("内置模型激活：${builtInModelAccessManager.getSummaryText()}")
                 appendLine()
                 appendLine("剪贴板历史：${buildClipboardHistorySummary()}")
                 appendLine()
@@ -309,6 +332,64 @@ class SettingsActivity : AppCompatActivity() {
                 .setView(dialogView)
                 .setPositiveButton("确定", null)
                 .create()
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+    }
+
+    private fun showBuiltInModelAccessDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_built_in_model_access, null)
+        val summaryView = dialogView.findViewById<TextView>(R.id.dialogBuiltInSummary)
+        val badgeView = dialogView.findViewById<TextView>(R.id.dialogBuiltInBadge)
+        val captionView = dialogView.findViewById<TextView>(R.id.dialogBuiltInUsageCaption)
+        val progressView = dialogView.findViewById<ProgressBar>(R.id.dialogBuiltInUsageProgress)
+        val hintView = dialogView.findViewById<TextView>(R.id.dialogBuiltInHint)
+        val inputView = dialogView.findViewById<EditText>(R.id.dialogBuiltInCodeInput)
+        val cancelButton = dialogView.findViewById<TextView>(R.id.dialogBuiltInCancel)
+        val activateButton = dialogView.findViewById<TextView>(R.id.dialogBuiltInActivate)
+
+        summaryView.text = builtInModelAccessManager.getSummaryText()
+        badgeView.text = builtInModelAccessManager.getBadgeLabel()
+        captionView.text = builtInModelAccessManager.getUsageCaption()
+        progressView.max = BuiltInModelAccessManager.TRIAL_LIMIT
+        progressView.progress = builtInModelAccessManager.getProgressValue()
+        hintView.text =
+            if (builtInModelAccessManager.isActivated()) {
+                "当前设备已经解锁，无需重复输入激活码。"
+            } else {
+                "试用次数会在使用内置识别或改写能力时消耗。"
+            }
+        inputView.isEnabled = !builtInModelAccessManager.isActivated()
+
+        val dialog =
+            AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create()
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        if (builtInModelAccessManager.isActivated()) {
+            activateButton.alpha = 0.55f
+            activateButton.text = "已激活"
+            activateButton.setOnClickListener(null)
+        } else {
+            activateButton.setOnClickListener {
+                val result = builtInModelAccessManager.activate(inputView.text.toString())
+                if (!result.success) {
+                    inputView.error = result.message
+                    return@setOnClickListener
+                }
+                updateBuiltInModelAccessStatus()
+                refreshAllStatuses()
+                dialog.dismiss()
+                showInfoDialog(
+                    title = "激活成功",
+                    body = result.message,
+                )
+            }
+        }
+
         dialog.show()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
