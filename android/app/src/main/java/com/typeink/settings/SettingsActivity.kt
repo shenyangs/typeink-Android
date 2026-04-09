@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -343,9 +344,11 @@ class SettingsActivity : AppCompatActivity() {
         val captionView = dialogView.findViewById<TextView>(R.id.dialogBuiltInUsageCaption)
         val progressView = dialogView.findViewById<ProgressBar>(R.id.dialogBuiltInUsageProgress)
         val hintView = dialogView.findViewById<TextView>(R.id.dialogBuiltInHint)
+        val codeLabelView = dialogView.findViewById<TextView>(R.id.dialogBuiltInCodeLabel)
         val inputView = dialogView.findViewById<EditText>(R.id.dialogBuiltInCodeInput)
         val cancelButton = dialogView.findViewById<TextView>(R.id.dialogBuiltInCancel)
         val activateButton = dialogView.findViewById<TextView>(R.id.dialogBuiltInActivate)
+        val isActivated = builtInModelAccessManager.isActivated()
 
         summaryView.text = builtInModelAccessManager.getSummaryText()
         badgeView.text = builtInModelAccessManager.getBadgeLabel()
@@ -353,12 +356,14 @@ class SettingsActivity : AppCompatActivity() {
         progressView.max = BuiltInModelAccessManager.TRIAL_LIMIT
         progressView.progress = builtInModelAccessManager.getProgressValue()
         hintView.text =
-            if (builtInModelAccessManager.isActivated()) {
-                "当前设备已经解锁，无需重复输入激活码。"
+            if (isActivated) {
+                "当前设备已经解锁，无需重复输入激活码。为避免旁观泄露，激活码不会再显示。"
             } else {
                 "试用次数会在使用内置识别或改写能力时消耗。"
             }
-        inputView.isEnabled = !builtInModelAccessManager.isActivated()
+        codeLabelView.visibility = if (isActivated) View.GONE else View.VISIBLE
+        inputView.visibility = if (isActivated) View.GONE else View.VISIBLE
+        inputView.isEnabled = !isActivated
 
         val dialog =
             AlertDialog.Builder(this)
@@ -369,7 +374,7 @@ class SettingsActivity : AppCompatActivity() {
             dialog.dismiss()
         }
 
-        if (builtInModelAccessManager.isActivated()) {
+        if (isActivated) {
             activateButton.alpha = 0.55f
             activateButton.text = "已激活"
             activateButton.setOnClickListener(null)

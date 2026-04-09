@@ -31,6 +31,11 @@ android {
         versionCode 15
         versionName "0.5.0"
         buildConfigField "String", "DASHSCOPE_API_KEY", "\"${dashScopeApiKey.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+        ndk {
+            // 仅保留真机主流 ARM ABI，减小 APK 体积
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
     }
 
     buildTypes {

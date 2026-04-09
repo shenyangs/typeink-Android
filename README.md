@@ -69,9 +69,7 @@
 - 默认情况下，内置模型可免费试用 `100` 次。
 - 这里的“次数”，指使用内置识别或内置改写能力时的调用额度。
 - 如果你已经填写了自己的 API Key，就不会再消耗内置试用次数。
-- 在设置页输入激活码后，可解除试用次数限制，当前内置有效激活码：
-  - `shenyang`
-  - `samyum`
+- 在设置页输入有效激活码后，可解除试用次数限制。
 
 说明：
 
@@ -142,25 +140,11 @@ typeink-v{VERSION}-build{N}.apk
 
 示例：`typeink-v0.5.0-build10.apk`
 
-### GitHub 体验包规则
+### GitHub 体验包获取
 
-- `outputs/` 目录用于本地构建留档，默认不提交到 Git。
-- `发布包/` 目录用于生成“待上传到 GitHub Release 的体验包”。
-- 由于 GitHub 普通仓库文件有 `100MB` 限制，APK 不应直接作为普通 Git 文件提交到仓库历史。
-- 每次准备推送 GitHub 前，必须先重新构建一次：
-
-```bash
-cd /Users/sam/Desktop/typeink-codex
-./tools/build_apk.sh 0.5.0
-```
-
-- 构建完成后，脚本会同时生成：
-  - 本地留档包：`outputs/typeink-v{VERSION}-build{N}.apk`
-  - GitHub Release 体验包：`发布包/typeink-v{VERSION}-build{N}.apk`
-- 推送 GitHub 时：
-  - 代码正常走 Git 提交和推送；
-  - 最新的 `发布包/` APK 作为 GitHub Release 附件上传；
-  - 这样用户仍然可以直接下载体验，同时不会触发仓库大文件限制。
+- `发布包/` 目录用于生成待发布的 GitHub 体验 APK。
+- 由于 GitHub 普通仓库文件有 `100MB` 限制，体验 APK 不直接放进仓库历史。
+- 用户侧如果要下载最新体验包，优先从项目的 GitHub Release 附件获取。
 
 ## 目录结构
 

@@ -67,6 +67,7 @@
         android:textSize="13sp" />
 
     <TextView
+        android:id="@+id/dialogBuiltInCodeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
@@ -81,6 +82,7 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/bg_typeink_input_field"
         android:hint="请输入激活码"
+        android:inputType="textPassword"
         android:paddingHorizontal="14dp"
         android:textColor="@color/typeink_text"
         android:textColorHint="@color/typeink_muted"

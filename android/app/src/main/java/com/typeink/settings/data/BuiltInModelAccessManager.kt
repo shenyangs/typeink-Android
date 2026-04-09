@@ -37,9 +37,14 @@ class BuiltInModelAccessManager private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun isActivated(): Boolean = prefs.getBoolean(KEY_ACTIVATED, false)
+    init {
+        // 旧版本会把激活码明文落到本地；新版本只保留“已激活”状态，不再保存具体码值。
+        if (prefs.contains(KEY_ACTIVATED_BY)) {
+            prefs.edit().remove(KEY_ACTIVATED_BY).apply()
+        }
+    }
 
-    fun getActivatedBy(): String? = prefs.getString(KEY_ACTIVATED_BY, null)?.takeIf { it.isNotBlank() }
+    fun isActivated(): Boolean = prefs.getBoolean(KEY_ACTIVATED, false)
 
     fun getUsedCount(): Int = prefs.getInt(KEY_USED_COUNT, 0).coerceAtLeast(0)
 
@@ -75,7 +80,7 @@ class BuiltInModelAccessManager private constructor(context: Context) {
         }
         prefs.edit()
             .putBoolean(KEY_ACTIVATED, true)
-            .putString(KEY_ACTIVATED_BY, normalized)
+            .remove(KEY_ACTIVATED_BY)
             .apply()
         return BuiltInActivationResult(
             success = true,
@@ -84,9 +89,7 @@ class BuiltInModelAccessManager private constructor(context: Context) {
     }
 
     fun getBadgeLabel(): String {
-        val activatedBy = getActivatedBy()
         return when {
-            isActivated() && activatedBy != null -> "已激活 · $activatedBy"
             isActivated() -> "已激活"
             canUseBuiltInModel() -> "试用剩余 ${getRemainingTrialCount()}/$TRIAL_LIMIT"
             else -> "试用已用尽"
@@ -94,10 +97,7 @@ class BuiltInModelAccessManager private constructor(context: Context) {
     }
 
     fun getSummaryText(): String {
-        val activatedBy = getActivatedBy()
         return when {
-            isActivated() && activatedBy != null ->
-                "状态：已激活\n激活码：$activatedBy\n内置模型当前不再受试用次数限制。"
             isActivated() ->
                 "状态：已激活\n内置模型当前不再受试用次数限制。"
             else ->

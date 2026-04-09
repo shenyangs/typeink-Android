@@ -54,6 +54,7 @@ class TypeinkInputView(
         private const val EDIT_COMMAND_TIMEOUT_MS = 10_000L
         private const val EDIT_REWRITE_TIMEOUT_MS = 20_000L
         private const val EDIT_RETRY_DELAY_MS = 1_500L
+        private const val MAX_EDIT_REWRITE_AUTO_RETRY_COUNT = 1
     }
 
     enum class InputMode {
@@ -106,6 +107,8 @@ class TypeinkInputView(
     private var editCommandWatchdogToken: Long = 0L
     private var editRewriteWatchdogToken: Long = 0L
     private var editRetryToken: Long = 0L
+    private var editRewriteAutoRetryCount: Int = 0
+    private var editRewriteBaseText: String = ""
     private val clipboardHistoryManager = ClipboardHistoryManager.getInstance(context)
     private var isClipboardHistoryVisible: Boolean = false
     private var clipboardHistoryEntries: List<ClipboardHistoryEntry> = emptyList()
@@ -390,6 +393,7 @@ class TypeinkInputView(
     }
 
     private fun showIdleState() {
+        resetEditRewriteRetryState()
         if (hostPreviewText.isNotEmpty()) {
             restoreOriginalHostText()
         }
@@ -503,6 +507,7 @@ class TypeinkInputView(
     private fun exitEditMode() {
         val wasEditing = editSessionState.isActive
         clearEditAsyncGuards()
+        resetEditRewriteRetryState()
         if (isRecording || wasEditing) {
             host.stopVoiceInput()
         }
@@ -524,6 +529,7 @@ class TypeinkInputView(
     private fun startEditRecording() {
         if (isRecording || currentText.isEmpty()) return
 
+        resetEditRewriteRetryState()
         invalidateEditCommandGuard()
         invalidateEditRetryGuard()
         invalidateEditRewriteGuard()
@@ -630,6 +636,7 @@ class TypeinkInputView(
         }
 
         clearEditAsyncGuards()
+        resetEditRewriteRetryState()
         isRecording = false
         currentAmplitude = 0f
         editSessionState = TypeinkEditSessionReducer.inactive()
@@ -698,10 +705,17 @@ class TypeinkInputView(
         }
     }
 
-    private fun applyEditByLLM(command: String) {
+    private fun applyEditByLLM(
+        command: String,
+        fromAutomaticRetry: Boolean = false,
+    ) {
         invalidateEditRetryGuard()
+        if (!fromAutomaticRetry) {
+            editRewriteAutoRetryCount = 0
+            editRewriteBaseText = currentText
+        }
         val rewriteToken = nextEditRewriteWatchdogToken()
-        val baseText = currentText
+        val baseText = editRewriteBaseText.ifBlank { currentText }
         editSessionState = TypeinkEditSessionReducer.rewriting(editSessionState, command)
         showProcessingState()
         scheduleEditRewriteTimeout(rewriteToken)
@@ -714,6 +728,7 @@ class TypeinkInputView(
                     post {
                         if (rewriteToken != editRewriteWatchdogToken || editSessionState.phase != TypeinkEditPhase.REWRITING) return@post
                         invalidateEditRewriteGuard()
+                        resetEditRewriteRetryState()
                         isRecording = false
                         sessionTextState =
                             TypeinkSessionTextReducer.applyFinalResult(sessionTextState, newText)
@@ -741,6 +756,7 @@ class TypeinkInputView(
                     post {
                         if (rewriteToken != editRewriteWatchdogToken) return@post
                         invalidateEditRewriteGuard()
+                        if (scheduleEditRewriteAutoRetry(command, message)) return@post
                         isRecording = false
                         editSessionState = TypeinkEditSessionReducer.failed(editSessionState, message)
                         renderVoiceState(
@@ -789,6 +805,8 @@ class TypeinkInputView(
             if (editSessionState.phase != TypeinkEditPhase.REWRITING) return@postDelayed
             Log.w(TAG, "Edit rewrite timed out")
             invalidateEditRewriteGuard()
+            val lastInstruction = editSessionState.lastInstruction.trim()
+            if (scheduleEditRewriteAutoRetry(lastInstruction, "改写超时")) return@postDelayed
             isRecording = false
             editSessionState = TypeinkEditSessionReducer.failed(editSessionState, "改写超时")
             renderVoiceState(
@@ -811,6 +829,63 @@ class TypeinkInputView(
             if (editSessionState.phase != TypeinkEditPhase.FAILED || isRecording) return@postDelayed
             startEditRecording()
         }, EDIT_RETRY_DELAY_MS)
+    }
+
+    private fun scheduleEditRewriteAutoRetry(
+        command: String,
+        message: String,
+    ): Boolean {
+        val normalizedCommand = command.trim()
+        if (normalizedCommand.isEmpty()) return false
+        if (!isTransientEditRewriteFailure(message)) return false
+        if (editRewriteAutoRetryCount >= MAX_EDIT_REWRITE_AUTO_RETRY_COUNT) return false
+
+        editRewriteAutoRetryCount += 1
+        val retryToken = nextEditRetryToken()
+        val baseText = editRewriteBaseText.ifBlank { currentText }
+        Log.w(
+            TAG,
+            "Edit rewrite failed transiently, scheduling automatic retry #$editRewriteAutoRetryCount: $message",
+        )
+        isRecording = false
+        currentAmplitude = 0f
+        editSessionState = TypeinkEditSessionReducer.rewriting(editSessionState, normalizedCommand)
+        renderVoiceState(
+            TypeinkInputState(
+                phase = TypeinkInputPhase.REWRITING,
+                hint = "网络有点抖，正在自动重试修改...",
+                partialText = baseText,
+                finalText = baseText,
+                voiceInputEnabled = voiceInputEnabled,
+                blockedReason = blockedReason,
+                hasPendingCommit = hostPreviewText.isNotEmpty(),
+            ),
+        )
+        editGuardHandler.postDelayed({
+            if (retryToken != editRetryToken) return@postDelayed
+            if (editSessionState.phase != TypeinkEditPhase.REWRITING) return@postDelayed
+            applyEditByLLM(normalizedCommand, fromAutomaticRetry = true)
+        }, EDIT_RETRY_DELAY_MS)
+        return true
+    }
+
+    private fun isTransientEditRewriteFailure(message: String): Boolean {
+        val normalized = message.lowercase()
+        if (normalized.contains("解析失败") || normalized.contains("返回结果为空")) return false
+        if (normalized.contains("网络错误") || normalized.contains("超时")) return true
+
+        val statusCode =
+            Regex("""请求失败:\s*(\d{3})""")
+                .find(message)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.toIntOrNull()
+        return statusCode == 408 || statusCode == 429 || (statusCode != null && statusCode in 500..599)
+    }
+
+    private fun resetEditRewriteRetryState() {
+        editRewriteAutoRetryCount = 0
+        editRewriteBaseText = ""
     }
 
     private fun nextEditCommandWatchdogToken(): Long {
