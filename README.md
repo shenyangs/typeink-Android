@@ -182,6 +182,5 @@ typeink-codex/
 
 ## 安全与协作提示
 
-- `android/local.properties` 为本机私有配置，不要提交到 Git。
 - 不要在代码、文档、截图中暴露真实 API Key。
 - 贡献代码前建议先阅读 [系统架构与进度](docs/系统架构与进度.md)。
