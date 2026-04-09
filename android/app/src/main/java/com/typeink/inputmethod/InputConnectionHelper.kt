@@ -218,6 +218,12 @@ class InputConnectionHelper(private val tag: String = "TypeinkInputConnection") 
             return false
         }
         return try {
+            ic.finishComposingText()
+            val selected = ic.getSelectedText(0)
+            if (!selected.isNullOrEmpty()) {
+                ic.commitText("", 1)
+                return true
+            }
             ic.deleteSurroundingText(beforeLength, afterLength)
             true
         } catch (e: Throwable) {
